@@ -1,0 +1,43 @@
+<script setup lang="ts">
+import * as echarts from 'echarts'
+import type { EChartsOption } from 'echarts'
+import { ref } from 'vue'
+import EChart from '@/components/EChart.vue'
+import PanelSection from '@/components/PanelSection.vue'
+import appIcon from '@/assets/img/right/panel-icon-application.svg'
+import trendIcon from '@/assets/img/right/panel-icon-trend.svg'
+import applicationOrb from '@/assets/img/right/application-orb.png'
+
+const labels = { application: '数据资产应用', trend: '数据资产变化', table: '表', unit: '万张', ratio: '占比', trendUnit: '单位(万)', dataVolume: '数据量', growthRate: '增长率' }
+const departments = [{ name: '部门1', value: '16.2', rate: '28.5%' }, { name: '部门2', value: '8.1', rate: '14.5%' }, { name: '部门3', value: '20.5', rate: '54.7%' }, { name: '部门4', value: '13.2', rate: '18.5%' }]
+const trendOption: EChartsOption = {
+  tooltip: { trigger: 'axis', backgroundColor: 'rgba(5, 21, 45, .94)', borderColor: '#2c8fdb', textStyle: { color: '#dff4ff' } },
+  legend: { show: false, selectedMode: true, data: [labels.dataVolume, labels.growthRate] },
+  grid: { top: '7%', right: '3%', bottom: '14%', left: '10%' },
+  xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'], axisLine: { lineStyle: { color: '#526274' } }, axisLabel: { color: '#8ca0b4', fontSize: 10 } },
+  yAxis: { type: 'value', min: 0, max: 500, interval: 100, axisLabel: { color: '#8ca0b4', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(123, 159, 193, .28)' } } },
+  series: [
+    { name: labels.dataVolume, type: 'bar', data: [260, 340, 220, 320, 370, 260, 370, 450, 185, 220, 250, 370], barWidth: '32%', itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#117fec' }, { offset: 1, color: 'rgba(17, 127, 236, .2)' }]) } },
+    { name: labels.growthRate, type: 'line', data: [260, 340, 220, 320, 370, 260, 370, 430, 185, 220, 250, 370], symbol: 'circle', symbolSize: 5, lineStyle: { color: '#00e8dc', width: 2 }, itemStyle: { color: '#061329', borderColor: '#00e8dc', borderWidth: 2 } },
+  ],
+}
+const trendChart = ref<InstanceType<typeof EChart>>()
+const trendSelection = ref({ bar: true, line: true })
+const toggleTrend = (kind: 'bar' | 'line') => {
+  trendSelection.value[kind] = !trendSelection.value[kind]
+  trendChart.value?.dispatchAction({ type: 'legendToggleSelect', name: kind === 'bar' ? labels.dataVolume : labels.growthRate })
+}
+</script>
+
+<template>
+  <aside class="right-sidebar">
+    <PanelSection :title="labels.application" :icon="appIcon">
+      <div class="application-content"><div class="department-grid"><article v-for="item in departments" :key="item.name"><h3>{{ item.name }}</h3><p>{{ labels.table }} <b>{{ item.value }}</b><small>{{ labels.unit }}</small></p><p>{{ labels.ratio }} <b>{{ item.rate }}</b></p></article></div><img class="application-orb" :src="applicationOrb" alt="" /></div>
+    </PanelSection>
+    <PanelSection class="panel-section--secondary" :title="labels.trend" :icon="trendIcon"><div class="trend-area"><div class="trend-meta"><span>{{ labels.trendUnit }}</span><div><button :class="{ 'is-muted': !trendSelection.bar }" type="button" @click="toggleTrend('bar')"><i class="legend-bar" />{{ labels.dataVolume }}</button><button :class="{ 'is-muted': !trendSelection.line }" type="button" @click="toggleTrend('line')"><i class="legend-line" />{{ labels.growthRate }}</button></div></div><div class="trend-chart"><EChart ref="trendChart" :option="trendOption" /></div></div></PanelSection>
+  </aside>
+</template>
+
+<style scoped>
+.right-sidebar { display: flex; align-items: flex-end; flex-direction: column; gap: 0; }.right-sidebar :deep(.panel-section) { width: 21.1458vw; }.right-sidebar :deep(.panel-section--secondary) { width: 17.7083vw; }.application-content { position: relative; width: 21.1458vw; height: 36.0185vh; }.department-grid { display: grid; grid-template-columns: repeat(2, 9.8958vw); column-gap: 1.3542vw; row-gap: 1.8519vh; padding-top: 1.8519vh; }.department-grid article { width: 9.8958vw; height: 12.037vh; background: linear-gradient(90deg, rgba(30, 63, 126, .3) 0%, rgba(31, 67, 138, 0) 100%); }.department-grid article:nth-child(even) { background: linear-gradient(270deg, rgba(30, 63, 126, .3) 0%, rgba(31, 67, 138, 0) 100%); }.department-grid article:nth-child(3) { clip-path: polygon(0 0, 100% 0, 100% 100%, 17% 100%, 0 74%); }.department-grid h3 { height: 2.6852vh; margin: 0; padding: .463vh .5208vw; color: rgba(255,255,255,.8); font-size: .7292vw; font-weight: 500; background: linear-gradient(90deg, rgba(38, 91, 170, .8), rgba(17, 45, 91, .15)); }.department-grid article:nth-child(even) h3 { text-align: right; background: linear-gradient(270deg, rgba(38, 91, 170, .8), rgba(17, 45, 91, .15)); }.department-grid p { margin: 1.1111vh 1.0938vw 0; color: rgba(255,255,255,.6); font-size: .625vw; }.department-grid b { margin-left: .7292vw; font-size: 1.0417vw; font-weight: 900; background: linear-gradient(180deg, #fff 0%, #64c7ff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }.department-grid small { margin-left: .2083vw; color: rgba(255,255,255,.4); font-size: .625vw; }.application-orb { position: absolute; z-index: 2; top: 12.037vh; left: 50%; width: 5vw; height: 5vw; transform: translateX(-50%); }.trend-area { width: 17.7083vw; margin-top: 1.8519vh; }.trend-meta { display: flex; justify-content: space-between; color: rgba(255,255,255,.5); font-size: .5729vw; }.trend-meta div { color: rgba(255,255,255,.6); }.trend-meta button { padding:0; color:inherit; font:inherit; border:0; outline:0; appearance:none; -webkit-appearance:none; border-radius:0; box-shadow:none; background:transparent; cursor:pointer; }.trend-meta button.is-muted { opacity:.35; }.legend-bar { display:inline-block; width:.5208vw; height:.5208vw; margin-right:.2604vw; background:#117fec; }.legend-line { position:relative; display:inline-block; width:.9375vw; height:.1042vw; margin:0 .2604vw .1563vw .8333vw; vertical-align:middle; background:#00e8dc; }.legend-line::after { content:''; position:absolute; top:50%; left:50%; width:.4167vw; height:.4167vw; box-sizing:border-box; border:.1042vw solid #00e8dc; border-radius:50%; background:#061329; transform:translate(-50%,-50%); }.trend-chart { width: 17.7083vw; height: 24.7222vh; margin-top: .7407vh; }
+</style>

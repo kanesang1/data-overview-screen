@@ -1,75 +1,57 @@
 <script setup lang="ts">
-import DashboardPanel from '@/components/DashboardPanel.vue'
-import DataArchitecture from '@/components/DataArchitecture.vue'
-import EChart from '@/components/EChart.vue'
-import { useScreenFit } from '@/composables/useScreenFit'
-import { departments, qualityOption, sourceOption, trendOption } from '@/data/dashboard'
+import PanelSection from '@/components/PanelSection.vue'
+import background from '@/assets/img/bg/dashboard-background.png'
+import headerBg from '@/assets/img/bg/dashboard-header.png'
+import leftFrame from '@/assets/img/bg/dashboard-frame-left.png'
+import rightFrame from '@/assets/img/bg/dashboard-frame-right.png'
+import bottomFrame from '@/assets/img/bg/dashboard-footer.png'
+import leftDecoration from '@/assets/img/bg/sidebar-decoration-left.png'
+import rightDecoration from '@/assets/img/bg/sidebar-decoration-right.png'
+import qualityIcon from '@/assets/img/left/panel-icon-quality.svg'
+import sourceIcon from '@/assets/img/left/panel-icon-source.svg'
+import appIcon from '@/assets/img/right/panel-icon-application.svg'
+import changeIcon from '@/assets/img/right/panel-icon-trend.svg'
 
-const { canvasStyle } = useScreenFit()
+const labels = {
+  pageTitle: '\u6570\u636e\u603b\u89c8', platform: '\u7ba1\u7406\u5e73\u53f0', quality: '\u6570\u636e\u8d28\u91cf\u8bc4\u4ef7', source: '\u6570\u636e\u8d44\u4ea7\u6765\u6e90', application: '\u6570\u636e\u8d44\u4ea7\u5e94\u7528', trend: '\u6570\u636e\u8d44\u4ea7\u53d8\u5316',
+}
 </script>
 
 <template>
   <main class="viewport">
-    <div class="screen" :style="canvasStyle">
-      <div class="screen__edge" />
-      <header class="topbar">
-        <h1>数据总览</h1>
-        <button type="button">管理平台</button>
-      </header>
+    <div class="screen">
+      <img class="screen__background" :src="background" alt="" />
+      <img class="screen__frame screen__frame--left" :src="leftFrame" alt="" />
+      <img class="screen__frame screen__frame--right" :src="rightFrame" alt="" />
+      <img class="screen__header-art" :src="headerBg" alt="" />
+      <img class="screen__footer-art" :src="bottomFrame" alt="" />
+      <header class="topbar"><h1>{{ labels.pageTitle }}</h1><button type="button">{{ labels.platform }}</button></header>
 
+      <img class="sidebar-frame sidebar-frame--left" :src="leftDecoration" alt="" />
       <aside class="column column--left">
-        <DashboardPanel title="数据质量评价" symbol="▣">
-          <div class="quality-chart"><EChart :option="qualityOption" /></div>
-          <div class="quality-metrics"><span>维度1<b>33.09万条</b></span><span>维度2<b>33.09万条</b></span><span>维度3<b>33.09万条</b></span></div>
-        </DashboardPanel>
-        <DashboardPanel title="数据资产来源" symbol="▥">
-          <div class="source-chart"><EChart :option="sourceOption" /></div>
-        </DashboardPanel>
+        <PanelSection :title="labels.quality" :icon="qualityIcon"><div class="placeholder placeholder--quality" /></PanelSection>
+        <PanelSection class="panel-section--secondary" :title="labels.source" :icon="sourceIcon"><div class="placeholder placeholder--source" /></PanelSection>
       </aside>
-
-      <section class="center"><DataArchitecture /></section>
-
+      <section class="center-stage" aria-label="center-content-area" />
+      <img class="sidebar-frame sidebar-frame--right" :src="rightDecoration" alt="" />
       <aside class="column column--right">
-        <DashboardPanel title="数据资产应用" symbol="◆">
-          <div class="departments">
-            <article v-for="item in departments" :key="item.name">
-              <h3>{{ item.name }}</h3>
-              <p>表 <strong>{{ item.count }}</strong><small>万张</small></p>
-              <p>占比 <strong>{{ item.rate }}</strong></p>
-            </article>
-          </div>
-        </DashboardPanel>
-        <DashboardPanel title="数据资产变化" symbol="◉">
-          <div class="trend-chart"><EChart :option="trendOption" /></div>
-        </DashboardPanel>
+        <PanelSection :title="labels.application" :icon="appIcon"><div class="placeholder placeholder--application" /></PanelSection>
+        <PanelSection class="panel-section--secondary" :title="labels.trend" :icon="changeIcon"><div class="placeholder placeholder--trend" /></PanelSection>
       </aside>
     </div>
   </main>
 </template>
 
 <style scoped>
-.viewport { position: fixed; inset: 0; overflow: hidden; background: #01050d; }
-.screen { position: absolute; left: 50%; top: 50%; transform-origin: center; overflow: hidden; color: #d6f4ff; background: linear-gradient(rgba(2,10,23,.68), rgba(2,10,23,.52)), url('/figma/raw-5.png') center/cover no-repeat; }
-.screen::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 52%, rgba(13, 67, 161, .12), rgba(1, 7, 18, .62) 72%); pointer-events: none; }
-.screen__edge { position: absolute; z-index: 10; inset: 8px; pointer-events: none; border: 1px solid rgba(74, 175, 255, .8); clip-path: polygon(0 0, 37% 0, 39% 1.2%, 61% 1.2%, 63% 0, 100% 0, 100% 100%, 63% 100%, 61% 98.8%, 39% 98.8%, 37% 100%, 0 100%); box-shadow: inset 0 0 24px rgba(46, 138, 255, .8); }
-.topbar { position: absolute; z-index: 4; left: 0; top: 0; width: 100%; height: 95px; background: linear-gradient(135deg, transparent 28%, rgba(16,74,145,.5) 37%, rgba(29,101,182,.35) 50%, rgba(16,74,145,.5) 63%, transparent 72%); border-top: 2px solid #74bfff; }
-.topbar::after { content: ''; position: absolute; left: 635px; right: 635px; bottom: 13px; height: 2px; background: linear-gradient(90deg, transparent, #8bd9ff, transparent); box-shadow: 0 0 15px #6ecbff; }
-.topbar h1 { margin: 22px 0 0; text-align: center; font-family: 'Microsoft YaHei', sans-serif; font-size: 32px; letter-spacing: 8px; text-shadow: 0 0 14px #80cfff; }
-.topbar button { position: absolute; right: 38px; top: 20px; color: #d3efff; font-size: 13px; padding: 8px 14px; border: 1px solid #2e6da9; background: rgba(22, 65, 122, .8); }
-.column { position: absolute; z-index: 3; top: 88px; width: 405px; display: grid; gap: 40px; }
-.column--left { left: 50px; }
-.column--right { right: 50px; }
-.center { position: absolute; z-index: 2; left: 420px; right: 420px; top: 105px; bottom: 0; }
-.quality-chart { height: 245px; }
-.quality-metrics { display: flex; justify-content: space-around; margin-top: -22px; color: #99c9e8; font-size: 13px; text-align: center; }
-.quality-metrics b { display: block; margin-top: 7px; color: #b7eaff; }
-.source-chart { height: 315px; }
-.departments { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 18px; }
-.departments article { height: 112px; padding: 0 14px; background: linear-gradient(135deg, rgba(20,68,139,.62), rgba(8,29,62,.24)); border: 1px solid rgba(36,106,183,.22); }
-.departments h3 { height: 28px; margin: 0 -14px 10px; padding: 5px 12px; color: #9dcef1; font-size: 14px; background: linear-gradient(90deg, rgba(32,83,158,.7), transparent); }
-.departments article:nth-child(even) h3 { text-align: right; }
-.departments p { margin: 8px 0; color: #87a9c4; font-size: 12px; }
-.departments strong { margin-left: 18px; color: #d5f0ff; font-size: 19px; }
-.departments small { color: #7195b0; }
-.trend-chart { height: 310px; }
+.viewport, .screen { position: fixed; inset: 0; overflow: hidden; }.viewport { background: #020812; }.screen { color: #d9f3ff; }
+.screen__background, .screen__frame, .screen__header-art, .screen__footer-art, .sidebar-frame { position: absolute; pointer-events: none; user-select: none; }
+.screen__background { z-index: 0; inset: 0; width: 100vw; height: 100vh; }.screen__frame { z-index: 5; top: 0; width: 60.7813vw; height: 100vh; }.screen__frame--left { left: 0; }.screen__frame--right { right: 0; }
+.screen__header-art { z-index: 2; top: 0; left: 0; width: 100vw; height: 8.8889vh; }.screen__footer-art { z-index: 4; bottom: 0; left: 30.4688vw; width: 39.8958vw; height: 3.8889vh; }
+.topbar { position: absolute; z-index: 3; top: 0; left: 0; width: 100vw; height: 8.8889vh; }.topbar h1 { margin: 2.2222vh 0 0; text-align: center; color: #d8f4ff; font-size: 1.6667vw; font-weight: 700; line-height: 4.4444vh; letter-spacing: .3646vw; text-shadow: 0 0 .625vw rgba(106, 203, 255, .8); }.topbar button { position: absolute; top: 2.4074vh; right: 2.0833vw; height: 2.963vh; padding: 0 .625vw; color: #d7f1ff; font-size: .7292vw; border: 1px solid #3678bf; background: rgba(19, 61, 119, .78); }
+.sidebar-frame { z-index: 3; top: 8.4259vh; width: 22.9688vw; height: 90.2778vh; }.sidebar-frame--left { left: 1.0417vw; }.sidebar-frame--right { right: 1.0417vw; }
+.column { position: absolute; z-index: 4; top: 8.4259vh; width: 21.1458vw; height: 90.0926vh; display: flex; flex-direction: column; gap: 3.7037vh; }.column--left { left: 1.6667vw; align-items: flex-start; }.column--right { right: 1.6667vw; align-items: flex-end; }
+.column :deep(.panel-section) { position: relative; z-index: 1; width: 21.1458vw; }.column--right :deep(.panel-section) { margin-left: auto; }
+.column :deep(.panel-section--secondary) { width: 17.7083vw; }
+.placeholder { margin: 1.2963vh 1.0417vw 0; }.placeholder--quality { height: 32.3148vh; }.placeholder--source { height: 32.4074vh; }.placeholder--application { height: 31.3889vh; }.placeholder--trend { height: 32.4074vh; }
+.center-stage { position: absolute; z-index: 1; top: 8.8889vh; right: 23.6979vw; bottom: 3.8889vh; left: 23.6979vw; }
 </style>

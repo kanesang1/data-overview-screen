@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import nodeActive from '@/assets/img/center/tree/node-active.png'
 import nodeInactive from '@/assets/img/center/tree/node-inactive.png'
 import serviceIconDefault from '@/assets/img/center/tree/one/service-node-01.png'
@@ -7,10 +7,39 @@ import serviceIconActive from '@/assets/img/center/tree/one/service-node-02.png'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
 
-defineProps<{ nodes: TreeNode[] }>()
+const props = defineProps<{ nodes: TreeNode[] }>()
 
 const serviceArc: ArcLayout = { leftStart: 19.5, leftEnd: 67.4, edgeTop: 1, centerTop: 4.95 }
 const selectedId = ref<number | null>(null)
+const carouselInterval = 2500
+let carouselTimer: ReturnType<typeof setInterval> | undefined
+
+const selectNextNode = () => {
+  if (props.nodes.length === 0) return
+  const currentIndex = props.nodes.findIndex(node => node.id === selectedId.value)
+  selectedId.value = props.nodes[(currentIndex + 1) % props.nodes.length].id
+}
+
+const stopCarousel = () => {
+  if (carouselTimer) clearInterval(carouselTimer)
+  carouselTimer = undefined
+}
+
+const startCarousel = () => {
+  stopCarousel()
+  carouselTimer = setInterval(selectNextNode, carouselInterval)
+}
+
+const selectNode = (id: number) => {
+  stopCarousel()
+  selectedId.value = id
+}
+
+onMounted(() => {
+  selectNextNode()
+  startCarousel()
+})
+onBeforeUnmount(stopCarousel)
 </script>
 
 <template>
@@ -24,10 +53,10 @@ const selectedId = ref<number | null>(null)
       :style="getArcStyle(index, nodes.length, serviceArc)"
       type="button"
       :aria-pressed="selectedId === node.id"
-      @mouseenter="selectedId = node.id"
-      @mouseleave="selectedId = null"
-      @focus="selectedId = node.id"
-      @blur="selectedId = null"
+      @mouseenter="selectNode(node.id)"
+      @mouseleave="startCarousel"
+      @focus="selectNode(node.id)"
+      @blur="startCarousel"
     >
       <span class="service-visual">
         <img class="service-base" :src="selectedId === node.id ? nodeActive : nodeInactive" alt="" />

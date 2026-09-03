@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import nodeBaseActive from '@/assets/img/center/tree/node-base-active.png'
 import nodeBaseDefault from '@/assets/img/center/tree/node-base-default.png'
 import scenarioNodeBase from '@/assets/img/center/tree/three/scenario-node-base.png'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
 
-defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
+const props = defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
 
 type FoundationArcLayout = {
   leftStart: number
@@ -28,6 +28,35 @@ const foundationArc: FoundationArcLayout = {
 }
 const selectedScenarioId = ref<number | null>(null)
 const selectedFoundationId = ref<number | null>(null)
+const carouselInterval = 2500
+let foundationCarouselTimer: ReturnType<typeof setInterval> | undefined
+
+const selectNextFoundation = () => {
+  if (props.foundationNodes.length === 0) return
+  const currentIndex = props.foundationNodes.findIndex(node => node.id === selectedFoundationId.value)
+  selectedFoundationId.value = props.foundationNodes[(currentIndex + 1) % props.foundationNodes.length].id
+}
+
+const stopFoundationCarousel = () => {
+  if (foundationCarouselTimer) clearInterval(foundationCarouselTimer)
+  foundationCarouselTimer = undefined
+}
+
+const startFoundationCarousel = () => {
+  stopFoundationCarousel()
+  foundationCarouselTimer = setInterval(selectNextFoundation, carouselInterval)
+}
+
+const selectFoundation = (id: number) => {
+  stopFoundationCarousel()
+  selectedFoundationId.value = id
+}
+
+onMounted(() => {
+  selectNextFoundation()
+  startFoundationCarousel()
+})
+onBeforeUnmount(stopFoundationCarousel)
 
 const getFoundationTop = (progress: number) => {
   const distanceFromCenter = Math.abs(progress - 0.5) * 2
@@ -101,10 +130,10 @@ const getFoundationArcStyle = (index: number, count: number) => {
       :style="getFoundationArcStyle(index, foundationNodes.length)"
       type="button"
       :aria-pressed="selectedFoundationId === node.id"
-      @mouseenter="selectedFoundationId = node.id"
-      @mouseleave="selectedFoundationId = null"
-      @focus="selectedFoundationId = node.id"
-      @blur="selectedFoundationId = null"
+      @mouseenter="selectFoundation(node.id)"
+      @mouseleave="startFoundationCarousel"
+      @focus="selectFoundation(node.id)"
+      @blur="startFoundationCarousel"
     >
       <span class="foundation-visual">
         <img class="foundation-base" :src="nodeBaseDefault" alt="" />

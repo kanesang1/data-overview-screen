@@ -45,7 +45,9 @@ const selectedId = ref<number | null>(null)
 .source-node:nth-of-type(5) { left: 64%; top: 74.2%; }
 .source-node:nth-of-type(6) { left: 77.5%; top: 68.8%; }
 .source-center-mark { position: absolute; left: 50%; top: 77.2%; width: 8.1574cqw; height: 7.4856cqw; transform: translateX(-50%); object-fit: contain; pointer-events: none; }
-.source-orb { position: relative; display: flex; width: 7.4856cqw; height: 7.4856cqw; margin: 0 auto; flex-direction: column; align-items: center; justify-content: center; }
+.source-orb { position: relative; display: flex; width: 7.4856cqw; height: 7.4856cqw; margin: 0 auto; flex-direction: column; align-items: center; justify-content: center; animation: source-orb-breathe 3s ease-in-out infinite; will-change: transform; }
+.source-node:nth-of-type(2n) .source-orb { animation-delay: -.75s; }
+.source-node:nth-of-type(3n) .source-orb { animation-delay: -1.5s; }
 .source-orb-background { position: absolute; z-index: 0; top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: contain; pointer-events: none; transition: opacity .12s ease; }
 .source-orb-background--default { width: 7.4856cqw; height: 7.4856cqw; opacity: 1; }
 .source-orb-background--active { width: 10.5566cqw; height: 10.5566cqw; opacity: 0; }
@@ -58,4 +60,9 @@ const selectedId = ref<number | null>(null)
 .source-node.is-active .source-orb-background--active, .source-node.is-active .source-orb-active-core { opacity: 1; }
 .source-node.is-active .source-orb b { color: #fff; font-size: 1.9194cqw; }
 .source-node.is-active .node-label { color: #fff; font-weight: 700; }
+@keyframes source-orb-breathe {
+  0%, 100% { transform: translateY(.2879cqw) scale(.985); }
+  50% { transform: translateY(-.7678cqw) scale(1.025); }
+}
+@media (prefers-reduced-motion: reduce) { .source-orb { animation: none; } }
 </style>

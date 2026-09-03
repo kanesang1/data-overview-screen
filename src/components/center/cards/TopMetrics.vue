@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MetricCard } from './types'
+import type { MetricCard } from '../types'
 
 defineProps<{ metrics: MetricCard[] }>()
 </script>

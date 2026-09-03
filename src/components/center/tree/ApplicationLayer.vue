@@ -74,13 +74,12 @@ const getNodeStyle = (index: number) => {
   const backTrack = slot < 0 || slot > lastSlot
   const position = nodeVisible ? getLoopStyle(slot) : getArcStyle(lastSlot, visibleCount.value, applicationArc)
   const edgeOpacity = slot < 0 ? slot + 1 : slot > lastSlot ? lastSlot + 1 - slot : 1
-  const frontEdgeDistance = Math.min(slot, lastSlot - slot)
-  const frontOpacity = 0.38 + 0.62 * Math.min(1, Math.max(0, frontEdgeDistance) / 0.35)
+  const trackProgress = Math.min(1, Math.max(0, slot / lastSlot))
+  const frontDepth = Math.sin(Math.PI * trackProgress)
+  const frontOpacity = 0.38 + 0.62 * frontDepth
   const opacity = backTrack
     ? 0.38 * Math.sqrt(Math.max(0, Math.min(1, edgeOpacity)))
     : frontOpacity
-  const trackProgress = Math.min(1, Math.max(0, slot / lastSlot))
-  const frontDepth = 4 * trackProgress * (1 - trackProgress)
   return {
     ...position,
     zIndex: backTrack ? 1 : Math.round(10 + frontDepth * 10),

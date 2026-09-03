@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import architectureBackground from '@/assets/img/center/tree/architecture-background.png'
-import TopMetrics from './center/TopMetrics.vue'
+import TopMetrics from './center/cards/TopMetrics.vue'
 import ApplicationLayer from './center/tree/ApplicationLayer.vue'
 import FoundationLayer from './center/tree/FoundationLayer.vue'
 import ServiceLayer from './center/tree/ServiceLayer.vue'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import metricOne from '@/assets/img/center/total-view-icon/overview-metric-01.svg'
 import metricTwo from '@/assets/img/center/total-view-icon/overview-metric-02.svg'
 import metricThree from '@/assets/img/center/total-view-icon/overview-metric-03.svg'
@@ -11,8 +11,9 @@ import nodeBaseActive from '@/assets/img/center/tree/node-base-active.png'
 import nodeBaseDefault from '@/assets/img/center/tree/node-base-default.png'
 import serviceIconDefault from '@/assets/img/center/tree/one/service-node-01.png'
 import serviceIconActive from '@/assets/img/center/tree/one/service-node-02.png'
-import applicationIcon from '@/assets/img/center/tree/two/application-node-icon.svg'
-import applicationBase from '@/assets/img/center/tree/two/application-node-base.svg'
+import applicationNodeActive from '@/assets/img/center/tree/two/application-node-active.svg'
+import applicationNodeDefault from '@/assets/img/center/tree/two/application-node-default.svg'
+import foundationIcon from '@/assets/img/center/tree/two/application-node-icon.svg'
 import scenarioIconOne from '@/assets/img/center/tree/three/scenario-node-icon-01.svg'
 import scenarioIconTwo from '@/assets/img/center/tree/three/scenario-node-icon-02.svg'
 import scenarioIconThree from '@/assets/img/center/tree/three/scenario-node-icon-03.svg'
@@ -162,10 +163,180 @@ const serviceNodes: MetricNode[] = Array.from({ length: 4 }, (_, index) => ({
   unit: '个',
 }))
 
-const applicationNodes: MetricNode[] = Array.from({ length: 6 }, (_, index) => ({
+const applicationNodes: MetricNode[] = Array.from({ length: 12 }, (_, index) => ({
   id: index + 1,
-  label: ['政务应用', '业务应用', '分析应用', '移动应用', '开放应用', '协同应用'][index],
+  label: [
+    '全市政务数据共享交换服务管理应用',
+    '城市运行综合监测分析管理服务应用',
+    '公共资源交易数据协同监管服务应用',
+    '基层社会治理联动指挥调度服务应用',
+    '生态环境质量监测预警分析服务应用',
+    '公共安全风险研判预警处置服务应用',
+    '城市交通运行态势分析管理服务应用',
+    '全民医疗健康数据便民服务管理应用',
+    '公共教育资源统筹配置管理服务应用',
+    '市场主体综合监管分析决策服务应用',
+    '基本民生服务保障协同管理服务应用',
+    '突发事件应急指挥联动调度服务应用',
+  ][index],
 }))
+
+const architectureElement = ref<HTMLElement | null>(null)
+const applicationVisibleCount = ref(7)
+const applicationCarouselPosition = ref(0)
+const isApplicationCarouselPaused = ref(false)
+const applicationNodeMinWidth = 110
+const applicationMinimumVisibleCount = 7
+const applicationMaximumVisibleCount = 7
+const applicationArcUsableWidthRatio = 0.76
+const applicationRotationStepDuration = 4200
+const applicationBackTrackInset = 7
+const applicationBackTrackLift = 1.8
+let applicationAnimationFrame: number | undefined
+let applicationAnimationTimestamp: number | undefined
+let applicationResizeObserver: ResizeObserver | undefined
+
+const getApplicationSlot = (index: number) => {
+  let slot = index - applicationCarouselPosition.value
+  if (slot < -1) slot += applicationNodes.length
+  return slot
+}
+
+const getApplicationLastTrackSlot = () => Math.max(1, applicationVisibleCount.value - 2)
+
+const isApplicationNodeVisible = (index: number) => {
+  const slot = getApplicationSlot(index)
+  const lastVisibleSlot = getApplicationLastTrackSlot()
+  return slot > -1 && slot < lastVisibleSlot + 1
+}
+
+const isApplicationNodeInteractive = (index: number) => {
+  const slot = getApplicationSlot(index)
+  const lastVisibleSlot = getApplicationLastTrackSlot()
+  return slot >= 0 && slot <= lastVisibleSlot
+}
+
+const isApplicationNodeOnBackTrack = (index: number) => {
+  const slot = getApplicationSlot(index)
+  const lastVisibleSlot = getApplicationLastTrackSlot()
+  return slot < 0 || slot > lastVisibleSlot
+}
+
+const visibleApplicationIds = computed(() => new Set(
+  applicationNodes
+    .filter((_, index) => isApplicationNodeInteractive(index))
+    .map(node => node.id),
+))
+
+const getApplicationLoopStyle = (slot: number) => {
+  const lastSlot = getApplicationLastTrackSlot()
+  const count = lastSlot + 1
+  const trackSlot = Math.min(lastSlot, Math.max(0, slot))
+  const position = getArcStyle(trackSlot, count, applicationArc)
+
+  if (slot >= 0 && slot <= lastSlot) return position
+
+  const isEntering = slot > lastSlot
+  const turnProgress = Math.min(1, Math.abs(slot - (isEntering ? lastSlot : 0)))
+  const horizontalInset = applicationBackTrackInset * Math.sin(turnProgress * Math.PI / 2)
+  const backArcLift = applicationBackTrackLift * Math.sin(turnProgress * Math.PI)
+
+  return {
+    left: `${isEntering
+      ? applicationArc.leftEnd - horizontalInset
+      : applicationArc.leftStart + horizontalInset}%`,
+    top: `${applicationArc.edgeTop - backArcLift}%`,
+  }
+}
+
+const getApplicationCarouselStyle = (index: number) => {
+  const slot = getApplicationSlot(index)
+  const isVisible = isApplicationNodeVisible(index)
+  const lastVisibleSlot = getApplicationLastTrackSlot()
+  const isBackTrack = slot < 0 || slot > lastVisibleSlot
+  const position = isVisible
+    ? getApplicationLoopStyle(slot)
+    : getArcStyle(lastVisibleSlot, applicationVisibleCount.value, applicationArc)
+  const edgeOpacity = slot < 0
+    ? slot + 1
+    : slot > lastVisibleSlot
+      ? lastVisibleSlot + 1 - slot
+      : 1
+  const frontEdgeDistance = Math.min(slot, lastVisibleSlot - slot)
+  const frontOpacity = 0.38 + 0.62 * Math.min(1, Math.max(0, frontEdgeDistance) / 0.35)
+  const opacity = isBackTrack
+    ? 0.38 * Math.sqrt(Math.max(0, Math.min(1, edgeOpacity)))
+    : frontOpacity
+  const trackProgress = Math.min(1, Math.max(0, slot / lastVisibleSlot))
+  const frontDepth = 4 * trackProgress * (1 - trackProgress)
+
+  return {
+    ...position,
+    zIndex: isBackTrack ? 1 : Math.round(10 + frontDepth * 10),
+    opacity: isVisible ? opacity : 0,
+    visibility: isVisible ? ('visible' as const) : ('hidden' as const),
+    pointerEvents: isVisible && !isBackTrack ? ('auto' as const) : ('none' as const),
+  }
+}
+
+const updateApplicationVisibleCount = (width: number) => {
+  const maxCount = Math.floor(width * applicationArcUsableWidthRatio / applicationNodeMinWidth)
+  applicationVisibleCount.value = Math.min(
+    applicationMaximumVisibleCount,
+    applicationNodes.length,
+    Math.max(applicationMinimumVisibleCount, maxCount),
+  )
+}
+
+const rotateApplicationNodes = (timestamp: number) => {
+  if (applicationAnimationTimestamp === undefined) applicationAnimationTimestamp = timestamp
+  const elapsed = Math.min(timestamp - applicationAnimationTimestamp, 100)
+  applicationCarouselPosition.value = (
+    applicationCarouselPosition.value + elapsed / applicationRotationStepDuration
+  ) % applicationNodes.length
+  applicationAnimationTimestamp = timestamp
+  applicationAnimationFrame = requestAnimationFrame(rotateApplicationNodes)
+}
+
+const stopApplicationCarousel = () => {
+  if (applicationAnimationFrame !== undefined) {
+    cancelAnimationFrame(applicationAnimationFrame)
+    applicationAnimationFrame = undefined
+  }
+  applicationAnimationTimestamp = undefined
+}
+
+const startApplicationCarousel = () => {
+  stopApplicationCarousel()
+  if (isApplicationCarouselPaused.value) return
+  applicationAnimationFrame = requestAnimationFrame(rotateApplicationNodes)
+}
+
+const pauseApplicationCarousel = () => {
+  isApplicationCarouselPaused.value = true
+  stopApplicationCarousel()
+}
+
+const resumeApplicationCarousel = () => {
+  isApplicationCarouselPaused.value = false
+  startApplicationCarousel()
+}
+
+onMounted(() => {
+  if (architectureElement.value) {
+    updateApplicationVisibleCount(architectureElement.value.getBoundingClientRect().width)
+    applicationResizeObserver = new ResizeObserver(([entry]) => {
+      updateApplicationVisibleCount(entry.contentRect.width)
+    })
+    applicationResizeObserver.observe(architectureElement.value)
+  }
+  startApplicationCarousel()
+})
+
+onBeforeUnmount(() => {
+  stopApplicationCarousel()
+  applicationResizeObserver?.disconnect()
+})
 
 const scenarioNodes: MetricNode[] = Array.from({ length: 4 }, (_, index) => ({
   id: index + 1,
@@ -178,7 +349,7 @@ const foundationNodes: MetricNode[] = Array.from({ length: 9 }, (_, index) => ({
   label: ['人口库', '法人库', '空间库', '电子证照', '信用库', '事项库', '资源库', '主题库', '专题库'][index],
   value: ['33.09', '28.76', '45.20', '19.86', '37.42', '26.18', '41.06', '30.55', '35.72'][index],
   unit: '万条',
-  icon: applicationIcon,
+  icon: foundationIcon,
 }))
 
 const sourceNodes: MetricNode[] = [
@@ -206,7 +377,7 @@ const selectedSourceId = ref<number | null>(null)
       </article>
     </div>
 
-    <div class="architecture">
+    <div ref="architectureElement" class="architecture">
       <img class="architecture__background" :src="architectureBackground" alt="" />
 
       <h2 class="layer-title layer-title--service">数据服务</h2>
@@ -237,36 +408,38 @@ const selectedSourceId = ref<number | null>(null)
         </button>
       </div>
 
-      <div class="node-ring node-ring--application">
+      <div
+        class="node-ring node-ring--application"
+        aria-label="应用数据，顺时针自动轮播"
+        @mouseenter="pauseApplicationCarousel"
+        @mouseleave="resumeApplicationCarousel"
+        @focusin="pauseApplicationCarousel"
+        @focusout="resumeApplicationCarousel"
+      >
         <button
           v-for="(node, index) in applicationNodes"
           :key="node.id"
           class="tree-node application-node"
-          :class="{ 'is-active': selectedApplicationId === node.id }"
-          :style="getArcStyle(index, applicationNodes.length, applicationArc)"
+          :class="{
+            'is-active': selectedApplicationId === node.id,
+            'is-back-track': isApplicationNodeOnBackTrack(index),
+          }"
+          :style="getApplicationCarouselStyle(index)"
           type="button"
           :aria-pressed="selectedApplicationId === node.id"
+          :aria-hidden="!visibleApplicationIds.has(node.id)"
+          :tabindex="visibleApplicationIds.has(node.id) ? 0 : -1"
           @mouseenter="selectedApplicationId = node.id"
           @mouseleave="selectedApplicationId = null"
           @focus="selectedApplicationId = node.id"
           @blur="selectedApplicationId = null"
         >
           <span class="application-visual">
-            <img class="application-base" :src="applicationBase" alt="" />
-            <svg
-              v-if="selectedApplicationId === node.id"
-              class="application-selection-frame"
-              viewBox="0 0 60 60"
-              aria-hidden="true"
-            >
-              <path
-                d="M10 .5H.5V10 M50 .5h9.5V10 M.5 50v9.5H10 M50 59.5h9.5V50"
-                fill="none"
-                stroke="#15F6FF"
-                stroke-width=".44"
-                vector-effect="non-scaling-stroke"
-              />
-            </svg>
+            <img
+              class="application-icon"
+              :src="selectedApplicationId === node.id ? applicationNodeActive : applicationNodeDefault"
+              alt=""
+            />
           </span>
           <span class="node-label">{{ node.label }}</span>
         </button>
@@ -385,14 +558,18 @@ const selectedSourceId = ref<number | null>(null)
 .service-node .node-metric small { color: rgba(255,255,255,.60); font-size: 1.1516cqw; font-weight: 400; }
 .service-node.is-active .node-label { color: #fff; font-weight: 700; }
 
-.application-node { top: 27.2%; }
-.application-visual { position: relative; display: block; width: 5.3743cqw; height: 5.3743cqw; margin: 0 auto; overflow: visible; transition: filter .25s ease, transform .25s ease; }
-.application-selection-frame { position: absolute; z-index: 2; top: 50%; left: 50%; width: 6.142cqw; height: 6.142cqw; overflow: visible; transform: translate(-50%, -50%); pointer-events: none; }
-.application-base { display: block; width: 5.3743cqw; height: 5.3743cqw; opacity: .56; filter: saturate(.72) brightness(.78); transition: opacity .25s ease, filter .25s ease; }
-.application-node .node-label { color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: normal; }
+.application-node { top: 27.2%; width: 12%; will-change: top, left, opacity; }
+.application-visual { position: relative; display: block; width: 4.4146cqw; height: 4.1147cqw; margin: 0 auto; overflow: visible; transition: filter .25s ease, transform .25s ease; }
+.application-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
+.application-node .node-label { display: -webkit-box; min-height: 2.5em; overflow: hidden; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; transition: opacity .2s ease; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.application-node.is-back-track .node-label { opacity: .22; }
+.application-node.is-back-track .application-icon { filter: brightness(.78) saturate(.72); }
 .application-node.is-active .application-visual { transform: translateY(-.2879cqw); filter: drop-shadow(0 0 .7678cqw #63dcff); }
-.application-node.is-active .application-base { opacity: 1; filter: brightness(1.24); }
 .application-node.is-active .node-label { color: #fff; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .application-node { transition: none; }
+}
 
 .scenario-node { position: absolute; top: 45.2%; width: 12%; padding: 0; border: 0; color: inherit; text-align: center; background: transparent; cursor: pointer; font-family: inherit; outline: none; }
 .scenario-visual { position: relative; display: block; width: 7.2937cqw; height: 4.9904cqw; margin: 0 auto; }

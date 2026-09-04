@@ -24,6 +24,13 @@ const foundationNodes = ref<TreeNode[]>([])
 const mapApplicationNode = (item: DataEvaluateDetailItem): TreeNode => ({
   id: item.datasetId,
   label: item.datasetDesc,
+  dimensionScores: {
+    waveformScore: item.waveformScore,
+    targetScore: item.targetScore,
+    clutterScore: item.clutterScore,
+    sceneScore: item.sceneScore,
+    climateScore: item.climateScore,
+  },
 })
 
 const mapFoundationNode = (item: DataEvaluateDetailItem): TreeNode => ({

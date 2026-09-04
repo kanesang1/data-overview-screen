@@ -8,6 +8,16 @@ import { dashboardLabels } from '@/config/dashboard-labels'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
 
+type DimensionScoreKey = keyof NonNullable<TreeNode['dimensionScores']>
+
+const dimensionScoreFields: DimensionScoreKey[] = [
+  'waveformScore',
+  'targetScore',
+  'clutterScore',
+  'sceneScore',
+  'climateScore',
+]
+
 const applicationArc: ArcLayout = { leftStart: 14.5, leftEnd: 74, edgeTop: 23, centerTop: 31.5 }
 const layerElement = ref<HTMLElement | null>(null)
 const visibleCount = ref(7)
@@ -50,6 +60,16 @@ const isBackTrack = (index: number) => !isInteractive(index)
 
 const visibleIds = computed(() => new Set(
   props.nodes.filter((_, index) => isInteractive(index)).map(node => node.id),
+))
+
+const isTooltipEligible = (index: number) => {
+  const slot = getSlot(index)
+  const lastSlot = getLastTrackSlot()
+  return slot > 0 && slot < lastSlot
+}
+
+const hasActiveTooltip = computed(() => props.nodes.some(
+  (node, index) => node.id === selectedId.value && isTooltipEligible(index),
 ))
 
 const getFrontTrackPosition = (slot: number, lastSlot: number) => {
@@ -101,8 +121,8 @@ const getNodeStyle = (index: number) => {
     : frontOpacity
   return {
     ...getCompositedPosition(position),
-    zIndex: backTrack ? 1 : Math.round(10 + frontDepth * 10),
-    opacity: nodeVisible ? opacity : 0,
+    zIndex: selectedId.value === props.nodes[index]?.id ? 40 : backTrack ? 1 : Math.round(10 + frontDepth * 10),
+    '--node-opacity': nodeVisible ? opacity : 0,
     visibility: nodeVisible ? ('visible' as const) : ('hidden' as const),
     pointerEvents: nodeVisible && !backTrack ? ('auto' as const) : ('none' as const),
   }
@@ -163,6 +183,7 @@ watch(() => props.nodes.length, (nodeCount) => {
   <section
     ref="layerElement"
     class="tree-layer"
+    :class="{ 'has-active-tooltip': hasActiveTooltip }"
     aria-label="应用数据，顺时针自动轮播"
     @mouseenter="pause"
     @mouseleave="resume"
@@ -174,7 +195,7 @@ watch(() => props.nodes.length, (nodeCount) => {
       v-for="(node, index) in nodes"
       :key="node.id"
       class="tree-node application-node"
-      :class="{ 'is-active': selectedId === node.id, 'is-back-track': isBackTrack(index) }"
+      :class="{ 'is-active': selectedId === node.id, 'is-back-track': isBackTrack(index), 'can-show-tooltip': isTooltipEligible(index) }"
       :style="getNodeStyle(index)"
       type="button"
       :aria-pressed="selectedId === node.id"
@@ -189,18 +210,32 @@ watch(() => props.nodes.length, (nodeCount) => {
         <img class="application-icon" :src="selectedId === node.id ? applicationNodeActive : applicationNodeDefault" alt="" />
       </span>
       <span class="node-label">{{ node.label }}</span>
+      <span v-if="node.dimensionScores" class="dimension-tooltip" role="tooltip">
+        <strong>{{ node.label }}</strong>
+        <span v-for="field in dimensionScoreFields" :key="field" class="dimension-tooltip__row">
+          <span>{{ dashboardLabels.leftTop.fieldLabels[field] }}</span>
+          <b>{{ node.dimensionScores[field] }}{{ dashboardLabels.leftTop.fieldUnits[field] }}</b>
+        </span>
+      </span>
     </button>
   </section>
 </template>
 
 <style scoped>
 .application-node { top: 27.2%; width: 12%; will-change: transform, opacity; backface-visibility: hidden; }
-.application-visual { position: relative; display: block; width: 4.4146cqw; height: 4.1147cqw; margin: 0 auto; overflow: visible; transition: filter .25s ease; }
+.tree-layer.has-active-tooltip { z-index: 100; }
+.application-visual { position: relative; display: block; width: 4.4146cqw; height: 4.1147cqw; margin: 0 auto; overflow: visible; opacity: var(--node-opacity, 1); transition: filter .25s ease; }
 .application-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
-.application-node .node-label { display: -webkit-box; min-height: 2.5em; overflow: hidden; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; transition: opacity .2s ease; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.application-node.is-back-track .node-label { opacity: .22; }
+.application-node .node-label { display: -webkit-box; min-height: 2.5em; overflow: hidden; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; opacity: var(--node-opacity, 1); transition: opacity .2s ease; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.application-node.is-back-track .node-label { opacity: calc(var(--node-opacity, 1) * .58); }
 .application-node.is-back-track .application-icon { filter: brightness(.78) saturate(.72); }
 .application-node.is-active .application-visual { filter: drop-shadow(0 0 .7678cqw #63dcff); }
 .application-node.is-active .node-label { color: #fff; font-weight: 700; }
+.dimension-tooltip { position: absolute; z-index: 30; bottom: calc(100% + .7678cqw); left: 50%; display: none; width: max-content; min-width: 11.5163cqw; box-sizing: border-box; padding: .9597cqw 1.1516cqw; border: 1px solid #2c8fdb; border-radius: .3839cqw; color: #dff4ff; font-size: 1.5355cqw; font-weight: 400; line-height: 1.5; text-align: left; white-space: nowrap; background: rgba(5, 21, 45, .94); box-shadow: 0 .2879cqw .9597cqw rgba(0, 0, 0, .28); transform: translateX(-50%); pointer-events: none; }
+.dimension-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; width: .5758cqw; height: .5758cqw; border-right: 1px solid #2c8fdb; border-bottom: 1px solid #2c8fdb; background: rgba(5, 21, 45, .94); transform: translate(-50%, -50%) rotate(45deg); }
+.application-node.is-active.can-show-tooltip .dimension-tooltip { display: block; }
+.dimension-tooltip > strong { display: block; margin-bottom: .4798cqw; color: #fff; font-size: 1.7274cqw; font-weight: 600; text-align: left; }
+.dimension-tooltip__row { display: flex; align-items: center; justify-content: flex-start; gap: .7678cqw; text-align: left; }
+.dimension-tooltip__row b { color: #dff4ff; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .application-node { transition: none; } }
 </style>

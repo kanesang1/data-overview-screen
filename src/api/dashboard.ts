@@ -38,8 +38,8 @@ export interface DataAssetApplicationItem {
 
 /** 左上角「数据质量评价」查询参数。 */
 export interface DataEvaluateDetailParams {
-  /** 数据集 ID；传 0 时查询默认数据集列表。 */
-  datasetId: number
+  /** 数据集类型：0 左上角，1 基础数据集，2 应用数据集。 */
+  datasetType: 0 | 1 | 2
 }
 
 /** 左上角「数据质量评价」数据集详情。 */

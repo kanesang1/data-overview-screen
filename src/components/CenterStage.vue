@@ -1,18 +1,62 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { getDataEvaluateDetail } from '@/api'
+import type { DataEvaluateDetailItem } from '@/api'
 import architectureBackground from '@/assets/img/center/tree/architecture-background.png'
+import foundationIcon from '@/assets/img/center/tree/two/application-node-icon.svg'
+import { dashboardLabels } from '@/config/dashboard-labels'
 import TopMetrics from './center/cards/TopMetrics.vue'
 import ApplicationLayer from './center/tree/ApplicationLayer.vue'
 import FoundationLayer from './center/tree/FoundationLayer.vue'
 import ServiceLayer from './center/tree/ServiceLayer.vue'
 import SourceLayer from './center/tree/SourceLayer.vue'
 import {
-  applicationNodes,
-  foundationNodes,
   metrics,
   scenarioNodes,
   serviceNodes,
 } from './center/mock-data'
+import type { TreeNode } from './center/types'
 import './center/tree/tree-shared.css'
+
+const applicationNodes = ref<TreeNode[]>([])
+const foundationNodes = ref<TreeNode[]>([])
+
+const mapApplicationNode = (item: DataEvaluateDetailItem): TreeNode => ({
+  id: item.datasetId,
+  label: item.datasetDesc,
+})
+
+const mapFoundationNode = (item: DataEvaluateDetailItem): TreeNode => ({
+  id: item.datasetId,
+  label: item.datasetDesc,
+  value: String(item.datasetCnt),
+  unit: dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt,
+  icon: foundationIcon,
+})
+
+const loadDatasetNodes = async () => {
+  const [foundationResult, applicationResult] = await Promise.allSettled([
+    getDataEvaluateDetail({ datasetType: 1 }),
+    getDataEvaluateDetail({ datasetType: 2 }),
+  ])
+
+  if (foundationResult.status === 'fulfilled') {
+    const response = foundationResult.value
+    if (response.code === 200 && Array.isArray(response.data)) {
+      foundationNodes.value = response.data.map(mapFoundationNode)
+    }
+  }
+  if (applicationResult.status === 'fulfilled') {
+    const response = applicationResult.value
+    if (response.code === 200 && Array.isArray(response.data)) {
+      applicationNodes.value = response.data.map(mapApplicationNode)
+    }
+  }
+}
+
+onMounted(() => {
+  void loadDatasetNodes()
+})
 </script>
 
 <template>

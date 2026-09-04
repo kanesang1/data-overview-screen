@@ -10,13 +10,16 @@ type SourceFieldLabels = {
 }
 
 type QualityScoreField = 'waveformScore' | 'targetScore' | 'clutterScore' | 'sceneScore' | 'climateScore'
+type DatasetIdentityField = 'datasetId' | 'datasetDesc'
 
 export interface DashboardLabels {
   pageHeader: { title: string; platform: string }
   leftTop: {
     title: string
+    dimensionTitle: string
+    dimensionUnit: string
     fieldLabels: Record<QualityScoreField, string>
-    fieldUnits: Record<QualityScoreField | 'datasetCnt', string>
+    fieldUnits: Record<QualityScoreField, string>
   }
   leftBottom: { title: string; fieldLabels: SourceFieldLabels; fieldUnit: string }
   rightTop: {
@@ -33,8 +36,15 @@ export interface DashboardLabels {
   }
   centerTree: {
     service: { title: string }
-    application: { title: string }
-    foundation: { title: string }
+    application: {
+      title: string
+      fieldLabels: Record<DatasetIdentityField, string>
+    }
+    foundation: {
+      title: string
+      fieldLabels: Record<DatasetIdentityField | 'datasetCnt', string>
+      fieldUnits: Record<'datasetCnt', string>
+    }
     source: { title: string; fieldLabels: SourceFieldLabels; fieldUnit: string }
   }
 }
@@ -47,8 +57,10 @@ const emptyLabels: DashboardLabels = {
   pageHeader: { title: '', platform: '' },
   leftTop: {
     title: '',
+    dimensionTitle: '',
+    dimensionUnit: '',
     fieldLabels: { waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
-    fieldUnits: { datasetCnt: '', waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
+    fieldUnits: { waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
   },
   leftBottom: { title: '', fieldLabels: emptySourceFieldLabels(), fieldUnit: '' },
   rightTop: {
@@ -65,8 +77,15 @@ const emptyLabels: DashboardLabels = {
   },
   centerTree: {
     service: { title: '' },
-    application: { title: '' },
-    foundation: { title: '' },
+    application: {
+      title: '',
+      fieldLabels: { datasetId: '', datasetDesc: '' },
+    },
+    foundation: {
+      title: '',
+      fieldLabels: { datasetId: '', datasetDesc: '', datasetCnt: '' },
+      fieldUnits: { datasetCnt: '' },
+    },
     source: { title: '', fieldLabels: emptySourceFieldLabels(), fieldUnit: '' },
   },
 }

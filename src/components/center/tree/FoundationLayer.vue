@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import nodeBaseActive from '@/assets/img/center/tree/node-base-active.png'
 import nodeBaseDefault from '@/assets/img/center/tree/node-base-default.png'
 import scenarioNodeBase from '@/assets/img/center/tree/three/scenario-node-base.png'
@@ -58,6 +58,10 @@ onMounted(() => {
   startFoundationCarousel()
 })
 onBeforeUnmount(stopFoundationCarousel)
+
+watch(() => props.foundationNodes, (nodes) => {
+  if (!nodes.some(node => node.id === selectedFoundationId.value)) selectNextFoundation()
+})
 
 const getFoundationTop = (progress: number) => {
   const distanceFromCenter = Math.abs(progress - 0.5) * 2

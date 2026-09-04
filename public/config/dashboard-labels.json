@@ -5,6 +5,8 @@
   },
   "leftTop": {
     "title": "数据质量评价",
+    "dimensionTitle": "数据质量维度",
+    "dimensionUnit": "个",
     "fieldLabels": {
       "waveformScore": "波形",
       "targetScore": "目标",
@@ -13,7 +15,6 @@
       "climateScore": "气候"
     },
     "fieldUnits": {
-      "datasetCnt": "条",
       "waveformScore": "分",
       "targetScore": "分",
       "clutterScore": "分",
@@ -62,10 +63,22 @@
       "title": "数据服务"
     },
     "application": {
-      "title": "应用数据"
+      "title": "应用数据",
+      "fieldLabels": {
+        "datasetId": "数据集ID",
+        "datasetDesc": "数据集名称"
+      }
     },
     "foundation": {
-      "title": "基础数据"
+      "title": "基础数据",
+      "fieldLabels": {
+        "datasetId": "数据集ID",
+        "datasetDesc": "数据集名称",
+        "datasetCnt": "数据量"
+      },
+      "fieldUnits": {
+        "datasetCnt": "条"
+      }
     },
     "source": {
       "title": "数据来源",

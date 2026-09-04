@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import applicationNodeActive from '@/assets/img/center/tree/two/application-node-active.svg'
 import applicationNodeDefault from '@/assets/img/center/tree/two/application-node-default.svg'
 import type { TreeNode } from '../types'
@@ -149,6 +149,14 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => { stop(); resizeObserver?.disconnect() })
+
+watch(() => props.nodes.length, (nodeCount) => {
+  carouselPosition.value = nodeCount > 0 ? carouselPosition.value % nodeCount : 0
+  if (layerElement.value) {
+    const bounds = layerElement.value.getBoundingClientRect()
+    updateLayout(bounds.width, bounds.height)
+  }
+})
 </script>
 
 <template>

@@ -9,12 +9,12 @@ import sourceOrbActive from '@/assets/img/center/tree/four/source-node-active.pn
 import type { TreeNode } from '../types'
 
 const sourceDefinitions: Array<{ key: keyof DataSourceData; label: string }> = [
-  { key: 'actual', label: dashboardLabels.centerTree.source.fieldLabels.actual },
-  { key: 'simulation', label: dashboardLabels.centerTree.source.fieldLabels.simulation },
-  { key: 'imported', label: dashboardLabels.centerTree.source.fieldLabels.imported },
-  { key: 'yellow_sea', label: dashboardLabels.centerTree.source.fieldLabels.yellow_sea },
-  { key: 'bohai', label: dashboardLabels.centerTree.source.fieldLabels.bohai },
-  { key: 'east_sea', label: dashboardLabels.centerTree.source.fieldLabels.east_sea },
+  { key: 'actual', label: dashboardLabels.common.dataSources.fieldLabels.actual },
+  { key: 'simulation', label: dashboardLabels.common.dataSources.fieldLabels.simulation },
+  { key: 'imported', label: dashboardLabels.common.dataSources.fieldLabels.imported },
+  { key: 'yellow_sea', label: dashboardLabels.common.dataSources.fieldLabels.yellow_sea },
+  { key: 'bohai', label: dashboardLabels.common.dataSources.fieldLabels.bohai },
+  { key: 'east_sea', label: dashboardLabels.common.dataSources.fieldLabels.east_sea },
 ]
 const nodes = ref<TreeNode[]>(sourceDefinitions.map((item, index) => ({ id: index + 1, label: item.label, value: '--', unit: dashboardLabels.centerTree.source.fieldUnit })))
 const selectedId = ref<number | null>(null)

@@ -1,4 +1,32 @@
 {
+  "common": {
+    "qualityDimensions": {
+      "fieldLabels": {
+        "waveformScore": "波形",
+        "targetScore": "目标",
+        "clutterScore": "杂波",
+        "sceneScore": "场景",
+        "climateScore": "气候"
+      },
+      "fieldUnits": {
+        "waveformScore": "分",
+        "targetScore": "分",
+        "clutterScore": "分",
+        "sceneScore": "分",
+        "climateScore": "分"
+      }
+    },
+    "dataSources": {
+      "fieldLabels": {
+        "actual": "实采数据",
+        "simulation": "仿真数据",
+        "imported": "引接数据",
+        "yellow_sea": "黄海",
+        "bohai": "渤海",
+        "east_sea": "东海"
+      }
+    }
+  },
   "pageHeader": {
     "title": "数据总览",
     "platform": "管理平台"
@@ -6,32 +34,10 @@
   "leftTop": {
     "title": "数据质量评价",
     "dimensionTitle": "数据质量维度",
-    "dimensionUnit": "个",
-    "fieldLabels": {
-      "waveformScore": "波形",
-      "targetScore": "目标",
-      "clutterScore": "杂波",
-      "sceneScore": "场景",
-      "climateScore": "气候"
-    },
-    "fieldUnits": {
-      "waveformScore": "分",
-      "targetScore": "分",
-      "clutterScore": "分",
-      "sceneScore": "分",
-      "climateScore": "分"
-    }
+    "dimensionUnit": "个"
   },
   "leftBottom": {
     "title": "数据资产来源",
-    "fieldLabels": {
-      "actual": "实采数据",
-      "simulation": "仿真数据",
-      "imported": "引接数据",
-      "yellow_sea": "黄海",
-      "bohai": "渤海",
-      "east_sea": "东海"
-    },
     "fieldUnit": "%"
   },
   "rightTop": {
@@ -82,14 +88,6 @@
     },
     "source": {
       "title": "数据来源",
-      "fieldLabels": {
-        "actual": "实采数据",
-        "simulation": "仿真数据",
-        "imported": "引接数据",
-        "yellow_sea": "黄海",
-        "bohai": "渤海",
-        "east_sea": "东海"
-      },
       "fieldUnit": "条"
     }
   }

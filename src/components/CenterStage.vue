@@ -39,6 +39,13 @@ const mapFoundationNode = (item: DataEvaluateDetailItem): TreeNode => ({
   value: String(item.datasetCnt),
   unit: dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt,
   icon: foundationIcon,
+  dimensionScores: {
+    waveformScore: item.waveformScore,
+    targetScore: item.targetScore,
+    clutterScore: item.clutterScore,
+    sceneScore: item.sceneScore,
+    climateScore: item.climateScore,
+  },
 })
 
 const loadDatasetNodes = async () => {

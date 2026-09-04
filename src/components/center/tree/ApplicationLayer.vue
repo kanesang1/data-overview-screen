@@ -213,8 +213,8 @@ watch(() => props.nodes.length, (nodeCount) => {
       <span v-if="node.dimensionScores" class="dimension-tooltip" role="tooltip">
         <strong>{{ node.label }}</strong>
         <span v-for="field in dimensionScoreFields" :key="field" class="dimension-tooltip__row">
-          <span>{{ dashboardLabels.leftTop.fieldLabels[field] }}</span>
-          <b>{{ node.dimensionScores[field] }}{{ dashboardLabels.leftTop.fieldUnits[field] }}</b>
+          <span>{{ dashboardLabels.common.qualityDimensions.fieldLabels[field] }}</span>
+          <b>{{ node.dimensionScores[field] }}{{ dashboardLabels.common.qualityDimensions.fieldUnits[field] }}</b>
         </span>
       </span>
     </button>
@@ -223,7 +223,7 @@ watch(() => props.nodes.length, (nodeCount) => {
 
 <style scoped>
 .application-node { top: 27.2%; width: 12%; will-change: transform, opacity; backface-visibility: hidden; }
-.tree-layer.has-active-tooltip { z-index: 100; }
+.tree-layer.has-active-tooltip { z-index: 200; }
 .application-visual { position: relative; display: block; width: 4.4146cqw; height: 4.1147cqw; margin: 0 auto; overflow: visible; opacity: var(--node-opacity, 1); transition: filter .25s ease; }
 .application-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
 .application-node .node-label { display: -webkit-box; min-height: 2.5em; overflow: hidden; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; opacity: var(--node-opacity, 1); transition: opacity .2s ease; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }

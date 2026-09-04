@@ -14,16 +14,16 @@ import qualityDimensions from '@/assets/img/left/quality-dimensions.png'
 const labels = { quality: dashboardLabels.leftTop.title, source: dashboardLabels.leftBottom.title }
 const qualityDetail = ref<DataEvaluateDetailItem>()
 const dimensions = computed(() => qualityDetail.value ? [
-  { name: dashboardLabels.leftTop.fieldLabels.waveformScore, value: qualityDetail.value.waveformScore, field: 'waveformScore' as const },
-  { name: dashboardLabels.leftTop.fieldLabels.targetScore, value: qualityDetail.value.targetScore, field: 'targetScore' as const },
-  { name: dashboardLabels.leftTop.fieldLabels.clutterScore, value: qualityDetail.value.clutterScore, field: 'clutterScore' as const },
-  { name: dashboardLabels.leftTop.fieldLabels.sceneScore, value: qualityDetail.value.sceneScore, field: 'sceneScore' as const },
-  { name: dashboardLabels.leftTop.fieldLabels.climateScore, value: qualityDetail.value.climateScore, field: 'climateScore' as const },
+  { name: dashboardLabels.common.qualityDimensions.fieldLabels.waveformScore, value: qualityDetail.value.waveformScore, field: 'waveformScore' as const },
+  { name: dashboardLabels.common.qualityDimensions.fieldLabels.targetScore, value: qualityDetail.value.targetScore, field: 'targetScore' as const },
+  { name: dashboardLabels.common.qualityDimensions.fieldLabels.clutterScore, value: qualityDetail.value.clutterScore, field: 'clutterScore' as const },
+  { name: dashboardLabels.common.qualityDimensions.fieldLabels.sceneScore, value: qualityDetail.value.sceneScore, field: 'sceneScore' as const },
+  { name: dashboardLabels.common.qualityDimensions.fieldLabels.climateScore, value: qualityDetail.value.climateScore, field: 'climateScore' as const },
 ] : [])
 const sourceDefinitions: Array<{ name: string; key: keyof DataSourceData }> = [
-  { name: dashboardLabels.leftBottom.fieldLabels.actual, key: 'actual' },
-  { name: dashboardLabels.leftBottom.fieldLabels.simulation, key: 'simulation' },
-  { name: dashboardLabels.leftBottom.fieldLabels.imported, key: 'imported' },
+  { name: dashboardLabels.common.dataSources.fieldLabels.actual, key: 'actual' },
+  { name: dashboardLabels.common.dataSources.fieldLabels.simulation, key: 'simulation' },
+  { name: dashboardLabels.common.dataSources.fieldLabels.imported, key: 'imported' },
 ]
 const sourceLegend = ref(sourceDefinitions.map((item) => ({ ...item, value: 0 })))
 const sourceColors = [['#2d95f5', '#207edb'], ['#4857d1', '#3339b5'], ['#a144dc', '#7a2bb5']]
@@ -70,7 +70,7 @@ onMounted(() => {
 <template>
   <aside class="left-sidebar">
     <PanelSection :title="labels.quality" :icon="qualityIcon">
-      <div class="quality-visual"><img class="quality-dimensions" :src="qualityDimensions" alt="" /><div class="quality-summary"><strong>{{ dashboardLabels.leftTop.dimensionTitle }}</strong><span><b>{{ dimensions.length || '--' }}</b>{{ dashboardLabels.leftTop.dimensionUnit }}</span></div><div class="dimension-list"><div v-for="item in dimensions" :key="item.name"><span>{{ item.name }}</span><b>{{ item.value }}<small>{{ dashboardLabels.leftTop.fieldUnits[item.field] }}</small></b></div></div></div>
+      <div class="quality-visual"><img class="quality-dimensions" :src="qualityDimensions" alt="" /><div class="quality-summary"><strong>{{ dashboardLabels.leftTop.dimensionTitle }}</strong><span><b>{{ dimensions.length || '--' }}</b>{{ dashboardLabels.leftTop.dimensionUnit }}</span></div><div class="dimension-list"><div v-for="item in dimensions" :key="item.name"><span>{{ item.name }}</span><b>{{ item.value }}<small>{{ dashboardLabels.common.qualityDimensions.fieldUnits[item.field] }}</small></b></div></div></div>
     </PanelSection>
     <PanelSection class="panel-section--secondary" :title="labels.source" :icon="sourceIcon">
       <div class="source-chart"><EChart ref="sourceChart" :option="sourceOption" /></div>

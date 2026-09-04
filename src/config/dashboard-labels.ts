@@ -14,14 +14,21 @@ type DatasetIdentityField = 'datasetId' | 'datasetDesc'
 
 export interface DashboardLabels {
   pageHeader: { title: string; platform: string }
+  common: {
+    /** 左上角、应用数据层和基础数据层共用的五维评分文案。 */
+    qualityDimensions: {
+      fieldLabels: Record<QualityScoreField, string>
+      fieldUnits: Record<QualityScoreField, string>
+    }
+    /** 左下角和数据来源层共用的数据来源文案。 */
+    dataSources: { fieldLabels: SourceFieldLabels }
+  }
   leftTop: {
     title: string
     dimensionTitle: string
     dimensionUnit: string
-    fieldLabels: Record<QualityScoreField, string>
-    fieldUnits: Record<QualityScoreField, string>
   }
-  leftBottom: { title: string; fieldLabels: SourceFieldLabels; fieldUnit: string }
+  leftBottom: { title: string; fieldUnit: string }
   rightTop: {
     title: string
     fieldLabels: Record<'tableCnt' | 'departmentRatio', string>
@@ -45,7 +52,7 @@ export interface DashboardLabels {
       fieldLabels: Record<DatasetIdentityField | 'datasetCnt', string>
       fieldUnits: Record<'datasetCnt', string>
     }
-    source: { title: string; fieldLabels: SourceFieldLabels; fieldUnit: string }
+    source: { title: string; fieldUnit: string }
   }
 }
 
@@ -55,14 +62,19 @@ const emptySourceFieldLabels = (): SourceFieldLabels => ({
 
 const emptyLabels: DashboardLabels = {
   pageHeader: { title: '', platform: '' },
+  common: {
+    qualityDimensions: {
+      fieldLabels: { waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
+      fieldUnits: { waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
+    },
+    dataSources: { fieldLabels: emptySourceFieldLabels() },
+  },
   leftTop: {
     title: '',
     dimensionTitle: '',
     dimensionUnit: '',
-    fieldLabels: { waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
-    fieldUnits: { waveformScore: '', targetScore: '', clutterScore: '', sceneScore: '', climateScore: '' },
   },
-  leftBottom: { title: '', fieldLabels: emptySourceFieldLabels(), fieldUnit: '' },
+  leftBottom: { title: '', fieldUnit: '' },
   rightTop: {
     title: '',
     fieldLabels: { tableCnt: '', departmentRatio: '' },
@@ -86,7 +98,7 @@ const emptyLabels: DashboardLabels = {
       fieldLabels: { datasetId: '', datasetDesc: '', datasetCnt: '' },
       fieldUnits: { datasetCnt: '' },
     },
-    source: { title: '', fieldLabels: emptySourceFieldLabels(), fieldUnit: '' },
+    source: { title: '', fieldUnit: '' },
   },
 }
 

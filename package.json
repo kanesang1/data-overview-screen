@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "dev:test": "vite --mode test --host 0.0.0.0",
-    "build": "vue-tsc -b && vite build",
-    "build:dev": "vue-tsc -b && vite build --mode development",
-    "build:test": "vue-tsc -b && vite build --mode test",
+    "build": "vue-tsc -b && vite build && node scripts/prepare-deploy.mjs test",
+    "build:dev": "vue-tsc -b && vite build --mode development && node scripts/prepare-deploy.mjs development",
+    "build:test": "vue-tsc -b && vite build --mode test && node scripts/prepare-deploy.mjs test",
     "preview": "vite preview --host 0.0.0.0",
     "type-check": "vue-tsc -b --force"
   },

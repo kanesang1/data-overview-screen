@@ -173,7 +173,7 @@ const getFoundationArcStyle = (index: number, count: number) => {
 </template>
 
 <style scoped>
-.tree-layer.has-active-tooltip { z-index: 100; }
+.tree-layer.has-active-tooltip { z-index: 300; }
 .scenario-node { position: absolute; top: 45.2%; width: 12%; padding: 0; border: 0; color: inherit; text-align: center; background: transparent; cursor: pointer; font-family: inherit; outline: none; }
 .scenario-visual { position: relative; display: block; width: 7.2937cqw; height: 4.9904cqw; margin: 0 auto; }
 .scenario-base { position: absolute; left: 50%; bottom: -.6718cqw; width: 7.2937cqw; height: 4.9904cqw; transform: translateX(-50%); object-fit: contain; }

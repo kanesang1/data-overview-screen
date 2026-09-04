@@ -5,6 +5,8 @@ export {
   getDataAssetChange,
   getDataAssetSource,
   getDataEvaluateDetail,
+  getDataOverview,
+  getDataServices,
   getDataSource,
 } from './dashboard'
 export type {
@@ -14,5 +16,7 @@ export type {
   DataAssetChangeParams,
   DataEvaluateDetailItem,
   DataEvaluateDetailParams,
+  DataOverviewData,
+  DataServiceItem,
   DataSourceData,
 } from './dashboard'

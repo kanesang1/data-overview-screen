@@ -64,9 +64,30 @@
     "unitTitle": "单位(个)",
     "monthSuffix": "月"
   },
+  "centerOverview": {
+    "fieldLabels": {
+      "totalCnt": "总记录",
+      "recordMom": "记录环比",
+      "totalTable": "总表数",
+      "totalSize": "总容量"
+    },
+    "fieldUnits": {
+      "totalCnt": "条",
+      "recordMom": "%",
+      "totalTable": "张",
+      "totalSize": "TB"
+    }
+  },
   "centerTree": {
     "service": {
-      "title": "数据服务"
+      "title": "数据服务",
+      "fieldLabels": {
+        "serviceDesc": "服务名称",
+        "serviceCnt": "服务数量"
+      },
+      "fieldUnits": {
+        "serviceCnt": "个"
+      }
     },
     "application": {
       "title": "应用数据",

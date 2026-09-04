@@ -83,6 +83,28 @@ export interface DataSourceData {
   east_sea: number
 }
 
+/** 中间顶部「数据总览」指标。 */
+export interface DataOverviewData {
+  /** 数据记录总数。 */
+  totalCnt: number
+  /** 数据记录月环比，单位：%。 */
+  recordMom: number
+  /** 数据表总数。 */
+  totalTable: number
+  /** 数据总容量，单位：TB。 */
+  totalSize: number
+}
+
+/** 中间树顶层「数据服务」数据。 */
+export interface DataServiceItem {
+  /** 数据服务 ID。 */
+  id: number
+  /** 数据服务描述。 */
+  serviceDesc: string
+  /** 数据服务数量。 */
+  serviceCnt: number
+}
+
 /**
  * 查询右下角「数据资产变化」。
  * GET /api/bi/data-asset-change
@@ -117,3 +139,17 @@ export const getDataSource = () =>
  */
 export const getDataAssetSource = () =>
   http.get<ApiResponse<DataSourceData>>('data-asset-source')
+
+/**
+ * 查询中间顶部「数据总览」。
+ * GET /api/bi/data-overview
+ */
+export const getDataOverview = () =>
+  http.get<ApiResponse<DataOverviewData>>('data-overview')
+
+/**
+ * 查询中间树顶层「数据服务」。
+ * GET /api/bi/data-services
+ */
+export const getDataServices = () =>
+  http.get<ApiResponse<DataServiceItem[]>>('data-services')

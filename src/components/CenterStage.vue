@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { getDataEvaluateDetail } from '@/api'
-import type { DataEvaluateDetailItem } from '@/api'
+import { getDataEvaluateDetail, getDataOverview, getDataServices } from '@/api'
+import type { DataEvaluateDetailItem, DataOverviewData, DataServiceItem } from '@/api'
+import metricOne from '@/assets/img/center/total-view-icon/overview-metric-01.svg'
+import metricTwo from '@/assets/img/center/total-view-icon/overview-metric-02.svg'
+import metricThree from '@/assets/img/center/total-view-icon/overview-metric-03.svg'
+import metricFour from '@/assets/img/center/total-view-icon/overview-metric-04.svg'
 import architectureBackground from '@/assets/img/center/tree/architecture-background.png'
 import foundationIcon from '@/assets/img/center/tree/two/application-node-icon.svg'
 import { dashboardLabels } from '@/config/dashboard-labels'
@@ -11,15 +15,33 @@ import FoundationLayer from './center/tree/FoundationLayer.vue'
 import ServiceLayer from './center/tree/ServiceLayer.vue'
 import SourceLayer from './center/tree/SourceLayer.vue'
 import {
-  metrics,
   scenarioNodes,
-  serviceNodes,
 } from './center/mock-data'
-import type { TreeNode } from './center/types'
+import type { MetricCard, TreeNode } from './center/types'
 import './center/tree/tree-shared.css'
 
 const applicationNodes = ref<TreeNode[]>([])
 const foundationNodes = ref<TreeNode[]>([])
+const metrics = ref<MetricCard[]>([])
+const serviceNodes = ref<TreeNode[]>([])
+
+const mapOverviewMetrics = (data: DataOverviewData): MetricCard[] => {
+  const { fieldLabels, fieldUnits } = dashboardLabels.centerOverview
+
+  return [
+    { label: fieldLabels.totalCnt, value: String(data.totalCnt), unit: fieldUnits.totalCnt, icon: metricOne },
+    { label: fieldLabels.recordMom, value: String(data.recordMom), unit: fieldUnits.recordMom, icon: metricTwo },
+    { label: fieldLabels.totalTable, value: String(data.totalTable), unit: fieldUnits.totalTable, icon: metricThree },
+    { label: fieldLabels.totalSize, value: String(data.totalSize), unit: fieldUnits.totalSize, icon: metricFour },
+  ]
+}
+
+const mapServiceNode = (item: DataServiceItem): TreeNode => ({
+  id: item.id,
+  label: item.serviceDesc,
+  value: String(item.serviceCnt),
+  unit: dashboardLabels.centerTree.service.fieldUnits.serviceCnt,
+})
 
 const mapApplicationNode = (item: DataEvaluateDetailItem): TreeNode => ({
   id: item.datasetId,
@@ -49,9 +71,11 @@ const mapFoundationNode = (item: DataEvaluateDetailItem): TreeNode => ({
 })
 
 const loadDatasetNodes = async () => {
-  const [foundationResult, applicationResult] = await Promise.allSettled([
+  const [foundationResult, applicationResult, overviewResult, servicesResult] = await Promise.allSettled([
     getDataEvaluateDetail({ datasetType: 1 }),
     getDataEvaluateDetail({ datasetType: 2 }),
+    getDataOverview(),
+    getDataServices(),
   ])
 
   if (foundationResult.status === 'fulfilled') {
@@ -64,6 +88,18 @@ const loadDatasetNodes = async () => {
     const response = applicationResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
       applicationNodes.value = response.data.map(mapApplicationNode)
+    }
+  }
+  if (overviewResult.status === 'fulfilled') {
+    const response = overviewResult.value
+    if (response.code === 200 && response.data) {
+      metrics.value = mapOverviewMetrics(response.data)
+    }
+  }
+  if (servicesResult.status === 'fulfilled') {
+    const response = servicesResult.value
+    if (response.code === 200 && Array.isArray(response.data)) {
+      serviceNodes.value = response.data.map(mapServiceNode)
     }
   }
 }

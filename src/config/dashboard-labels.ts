@@ -11,6 +11,7 @@ type SourceFieldLabels = {
 
 type QualityScoreField = 'waveformScore' | 'targetScore' | 'clutterScore' | 'sceneScore' | 'climateScore'
 type DatasetIdentityField = 'datasetId' | 'datasetDesc'
+type OverviewField = 'totalCnt' | 'recordMom' | 'totalTable' | 'totalSize'
 
 export interface DashboardLabels {
   pageHeader: { title: string; platform: string }
@@ -41,8 +42,16 @@ export interface DashboardLabels {
     unitTitle: string
     monthSuffix: string
   }
+  centerOverview: {
+    fieldLabels: Record<OverviewField, string>
+    fieldUnits: Record<OverviewField, string>
+  }
   centerTree: {
-    service: { title: string }
+    service: {
+      title: string
+      fieldLabels: Record<'serviceDesc' | 'serviceCnt', string>
+      fieldUnits: Record<'serviceCnt', string>
+    }
     application: {
       title: string
       fieldLabels: Record<DatasetIdentityField, string>
@@ -87,8 +96,16 @@ const emptyLabels: DashboardLabels = {
     unitTitle: '',
     monthSuffix: '',
   },
+  centerOverview: {
+    fieldLabels: { totalCnt: '', recordMom: '', totalTable: '', totalSize: '' },
+    fieldUnits: { totalCnt: '', recordMom: '', totalTable: '', totalSize: '' },
+  },
   centerTree: {
-    service: { title: '' },
+    service: {
+      title: '',
+      fieldLabels: { serviceDesc: '', serviceCnt: '' },
+      fieldUnits: { serviceCnt: '' },
+    },
     application: {
       title: '',
       fieldLabels: { datasetId: '', datasetDesc: '' },

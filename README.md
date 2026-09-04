@@ -76,3 +76,18 @@ docker compose --profile dev --profile test up -d --build
 
 访问地址分别为 `http://服务器IP:8081` 和 `http://服务器IP:8082`，健康检查地址为
 `/health`。服务器防火墙或云安全组需放行相应端口。
+
+## 打包后修改界面文案
+
+界面标题、接口字段中文名称和单位按页面模块配置在：
+
+```text
+public/config/dashboard-labels.json
+```
+
+构建后对应文件为 `dist/config/dashboard-labels.json`。配置按 `leftTop`、`leftBottom`、
+`rightTop`、`rightBottom` 和 `centerTree` 等模块划分；已接入接口的字段键尽量保持与后端
+DTO 一致，未接入接口的模块只配置标题，不包含 mock 数据。
+
+通过本项目的 Docker Compose 部署时，该配置会从宿主机只读挂载到容器中。修改宿主机的
+`public/config/dashboard-labels.json` 后刷新页面即可生效，无需重新构建镜像。

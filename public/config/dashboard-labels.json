@@ -1,0 +1,83 @@
+{
+  "pageHeader": {
+    "title": "数据总览",
+    "platform": "管理平台"
+  },
+  "leftTop": {
+    "title": "数据质量评价",
+    "fieldLabels": {
+      "waveformScore": "波形",
+      "targetScore": "目标",
+      "clutterScore": "杂波",
+      "sceneScore": "场景",
+      "climateScore": "气候"
+    },
+    "fieldUnits": {
+      "datasetCnt": "条",
+      "waveformScore": "分",
+      "targetScore": "分",
+      "clutterScore": "分",
+      "sceneScore": "分",
+      "climateScore": "分"
+    }
+  },
+  "leftBottom": {
+    "title": "数据资产来源",
+    "fieldLabels": {
+      "actual": "实采数据",
+      "simulation": "仿真数据",
+      "imported": "引接数据",
+      "yellow_sea": "黄海",
+      "bohai": "渤海",
+      "east_sea": "东海"
+    },
+    "fieldUnit": "%"
+  },
+  "rightTop": {
+    "title": "数据资产应用",
+    "fieldLabels": {
+      "tableCnt": "表",
+      "departmentRatio": "占比"
+    },
+    "fieldUnits": {
+      "tableCnt": "张",
+      "departmentRatio": "%"
+    }
+  },
+  "rightBottom": {
+    "title": "数据资产变化",
+    "fieldLabels": {
+      "changeCnt": "变更数量",
+      "changeRate": "变更率"
+    },
+    "fieldUnits": {
+      "changeCnt": "个",
+      "changeRate": "%"
+    },
+    "unitTitle": "单位(个)",
+    "monthSuffix": "月"
+  },
+  "centerTree": {
+    "service": {
+      "title": "数据服务"
+    },
+    "application": {
+      "title": "应用数据"
+    },
+    "foundation": {
+      "title": "基础数据"
+    },
+    "source": {
+      "title": "数据来源",
+      "fieldLabels": {
+        "actual": "实采数据",
+        "simulation": "仿真数据",
+        "imported": "引接数据",
+        "yellow_sea": "黄海",
+        "bohai": "渤海",
+        "east_sea": "东海"
+      },
+      "fieldUnit": "条"
+    }
+  }
+}

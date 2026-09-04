@@ -50,12 +50,3 @@ export const foundationNodes: TreeNode[] = [
   ['电子证照', '19.86'], ['信用库', '37.42'], ['事项库', '26.18'],
   ['资源库', '41.06'], ['主题库', '30.55'], ['专题库', '35.72'],
 ].map(([label, value], index) => ({ id: index + 1, label, value, unit: '万条', icon: foundationIcon }))
-
-export const sourceNodes: TreeNode[] = [
-  { id: 1, label: '接口采集', value: '99.21', unit: '万条' },
-  { id: 2, label: '库表交换', value: '37.11', unit: '万条' },
-  { id: 3, label: '文件导入', value: '21.98', unit: '万条' },
-  { id: 4, label: '实时接入', value: '67.89', unit: '万条' },
-  { id: 5, label: '人工填报', value: '123.98', unit: '万条' },
-  { id: 6, label: '其他来源', value: '3.54', unit: '万条' },
-]

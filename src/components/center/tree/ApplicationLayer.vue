@@ -4,6 +4,7 @@ import applicationNodeActive from '@/assets/img/center/tree/two/application-node
 import applicationNodeDefault from '@/assets/img/center/tree/two/application-node-default.svg'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
+import { dashboardLabels } from '@/config/dashboard-labels'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
 
@@ -140,7 +141,7 @@ onBeforeUnmount(() => { stop(); resizeObserver?.disconnect() })
     @focusin="pause"
     @focusout="resume"
   >
-    <h2 class="layer-title layer-title--application">应用数据</h2>
+    <h2 class="layer-title layer-title--application">{{ dashboardLabels.centerTree.application.title }}</h2>
     <button
       v-for="(node, index) in nodes"
       :key="node.id"

@@ -9,14 +9,15 @@ import rightFrame from '@/assets/img/bg/dashboard-frame-right.png'
 import bottomFrame from '@/assets/img/bg/dashboard-footer.png'
 import leftDecoration from '@/assets/img/bg/sidebar-decoration-left.png'
 import rightDecoration from '@/assets/img/bg/sidebar-decoration-right.png'
+import { dashboardLabels } from '@/config/dashboard-labels'
 
-const labels = { pageTitle: '数据总览', platform: '管理平台' }
+const labels = dashboardLabels.pageHeader
 </script>
 
 <template>
   <main class="viewport"><div class="screen">
     <img class="screen__background" :src="background" alt="" /><img class="screen__frame screen__frame--left" :src="leftFrame" alt="" /><img class="screen__frame screen__frame--right" :src="rightFrame" alt="" /><img class="screen__header-art" :src="headerBg" alt="" /><img class="screen__footer-art" :src="bottomFrame" alt="" />
-    <header class="topbar"><h1>{{ labels.pageTitle }}</h1><button type="button">{{ labels.platform }}</button></header>
+    <header class="topbar"><h1>{{ labels.title }}</h1><button type="button">{{ labels.platform }}</button></header>
     <img class="sidebar-frame sidebar-frame--left" :src="leftDecoration" alt="" /><LeftSidebar class="column column--left" />
     <CenterStage />
     <img class="sidebar-frame sidebar-frame--right" :src="rightDecoration" alt="" /><RightSidebar class="column column--right" />

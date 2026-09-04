@@ -6,6 +6,7 @@ import serviceIconDefault from '@/assets/img/center/tree/one/service-node-01.png
 import serviceIconActive from '@/assets/img/center/tree/one/service-node-02.png'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
+import { dashboardLabels } from '@/config/dashboard-labels'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
 
@@ -43,8 +44,8 @@ onBeforeUnmount(stopCarousel)
 </script>
 
 <template>
-  <section class="tree-layer" aria-label="数据服务">
-    <h2 class="layer-title layer-title--service">数据服务</h2>
+  <section class="tree-layer" :aria-label="dashboardLabels.centerTree.service.title">
+    <h2 class="layer-title layer-title--service">{{ dashboardLabels.centerTree.service.title }}</h2>
     <button
       v-for="(node, index) in nodes"
       :key="node.id"

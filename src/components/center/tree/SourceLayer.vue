@@ -1,17 +1,43 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { getDataSource } from '@/api'
+import type { DataSourceData } from '@/api'
+import { dashboardLabels } from '@/config/dashboard-labels'
 import sourceCenterMark from '@/assets/img/center/tree/four/source-center-marker.svg'
 import sourceOrbDefault from '@/assets/img/center/tree/four/source-node-default.png'
 import sourceOrbActive from '@/assets/img/center/tree/four/source-node-active.png'
 import type { TreeNode } from '../types'
 
-defineProps<{ nodes: TreeNode[] }>()
+const sourceDefinitions: Array<{ key: keyof DataSourceData; label: string }> = [
+  { key: 'actual', label: dashboardLabels.centerTree.source.fieldLabels.actual },
+  { key: 'simulation', label: dashboardLabels.centerTree.source.fieldLabels.simulation },
+  { key: 'imported', label: dashboardLabels.centerTree.source.fieldLabels.imported },
+  { key: 'yellow_sea', label: dashboardLabels.centerTree.source.fieldLabels.yellow_sea },
+  { key: 'bohai', label: dashboardLabels.centerTree.source.fieldLabels.bohai },
+  { key: 'east_sea', label: dashboardLabels.centerTree.source.fieldLabels.east_sea },
+]
+const nodes = ref<TreeNode[]>(sourceDefinitions.map((item, index) => ({ id: index + 1, label: item.label, value: '--', unit: dashboardLabels.centerTree.source.fieldUnit })))
 const selectedId = ref<number | null>(null)
+
+onMounted(async () => {
+  try {
+    const response = await getDataSource()
+    if (response.code !== 200 || !response.data) return
+    nodes.value = sourceDefinitions.map((item, index) => ({
+      id: index + 1,
+      label: item.label,
+      value: String(response.data[item.key]),
+      unit: dashboardLabels.centerTree.source.fieldUnit,
+    }))
+  } catch (error) {
+    console.error('[数据来源] 加载失败：', error)
+  }
+})
 </script>
 
 <template>
-  <section class="tree-layer" aria-label="数据来源">
-    <h2 class="layer-title layer-title--source">数据来源</h2>
+  <section class="tree-layer" :aria-label="dashboardLabels.centerTree.source.title">
+    <h2 class="layer-title layer-title--source">{{ dashboardLabels.centerTree.source.title }}</h2>
     <img class="source-center-mark" :src="sourceCenterMark" alt="" />
     <button
       v-for="node in nodes"

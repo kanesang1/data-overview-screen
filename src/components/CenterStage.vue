@@ -11,7 +11,6 @@ import {
   metrics,
   scenarioNodes,
   serviceNodes,
-  sourceNodes,
 } from './center/mock-data'
 import './center/tree/tree-shared.css'
 </script>
@@ -24,7 +23,7 @@ import './center/tree/tree-shared.css'
       <ServiceLayer :nodes="serviceNodes" />
       <ApplicationLayer :nodes="applicationNodes" />
       <FoundationLayer :scenario-nodes="scenarioNodes" :foundation-nodes="foundationNodes" />
-      <SourceLayer :nodes="sourceNodes" />
+      <SourceLayer />
     </div>
   </section>
 </template>

@@ -5,6 +5,7 @@ import nodeBaseDefault from '@/assets/img/center/tree/node-base-default.png'
 import scenarioNodeBase from '@/assets/img/center/tree/three/scenario-node-base.png'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
+import { dashboardLabels } from '@/config/dashboard-labels'
 
 const props = defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
 
@@ -99,8 +100,8 @@ const getFoundationArcStyle = (index: number, count: number) => {
 </script>
 
 <template>
-  <section class="tree-layer" aria-label="基础数据">
-    <h2 class="layer-title layer-title--foundation">基础数据</h2>
+  <section class="tree-layer" :aria-label="dashboardLabels.centerTree.foundation.title">
+    <h2 class="layer-title layer-title--foundation">{{ dashboardLabels.centerTree.foundation.title }}</h2>
     <button
       v-for="(node, index) in scenarioNodes"
       :key="`scenario-${node.id}`"

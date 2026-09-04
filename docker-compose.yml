@@ -8,6 +8,8 @@ services:
     image: data-overview-screen:dev
     ports:
       - "8081:80"
+    volumes:
+      - ./public/config/dashboard-labels.json:/usr/share/nginx/html/config/dashboard-labels.json:ro
     restart: unless-stopped
     profiles: ["dev"]
 
@@ -20,5 +22,7 @@ services:
     image: data-overview-screen:test
     ports:
       - "8082:80"
+    volumes:
+      - ./public/config/dashboard-labels.json:/usr/share/nginx/html/config/dashboard-labels.json:ro
     restart: unless-stopped
     profiles: ["test"]

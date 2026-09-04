@@ -6,7 +6,7 @@
 .node-label { margin-top: .3839cqw; line-height: 1; }
 .node-metric { margin-top: .096cqw; line-height: 1; }
 .node-metric b, .node-metric small { font-style: normal; line-height: 1; }
-.layer-title { position: absolute; z-index: 4; left: 50%; width: 14.4%; margin: 0; transform: translateX(-50%); color: transparent; text-align: center; text-shadow: 0 .1919cqw 0 rgba(0,0,0,.30); font-size: 1.9194cqw; font-style: normal; font-weight: 700; line-height: normal; letter-spacing: .0576cqw; white-space: nowrap; background: linear-gradient(180deg, #fff 22.22%, #95ccff 75.93%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; pointer-events: none; }
+.layer-title { position: absolute; z-index: 4; left: 50%; width: 14.4%; margin: 0; transform: translate(-50%, 25%); color: transparent; text-align: center; font-family: inherit; font-size: min(20px, 1.9194cqw); font-style: normal; font-weight: 700; line-height: 1; letter-spacing: min(.6px, .0576cqw); white-space: nowrap; background: linear-gradient(180deg, #fff 22.22%, #95ccff 75.93%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 min(2px, .1919cqw) 0 rgba(0,0,0,.30)); pointer-events: none; }
 .layer-title--service { top: 20.85%; }
 .layer-title--application { top: 42.05%; }
 .layer-title--foundation { top: 67.95%; }

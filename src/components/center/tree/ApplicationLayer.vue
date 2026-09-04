@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import applicationNodeActive from '@/assets/img/center/tree/two/application-node-active.svg'
 import applicationNodeDefault from '@/assets/img/center/tree/two/application-node-default.svg'
 import type { TreeNode } from '../types'
-import { getArcStyle, type ArcLayout } from './arc-layout'
+import type { ArcLayout } from './arc-layout'
 import { dashboardLabels } from '@/config/dashboard-labels'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
@@ -18,9 +18,10 @@ const nodeMinWidth = 110
 const minimumVisibleCount = 7
 const maximumVisibleCount = 7
 const arcUsableWidthRatio = 0.76
-const rotationStepDuration = 4200
+const rotationStepDuration = 12000
 const backTrackInset = 7
 const backTrackLift = 1.8
+const layerSize = ref({ width: 0, height: 0 })
 let animationFrame: number | undefined
 let animationTimestamp: number | undefined
 let resizeObserver: ResizeObserver | undefined
@@ -51,20 +52,37 @@ const visibleIds = computed(() => new Set(
   props.nodes.filter((_, index) => isInteractive(index)).map(node => node.id),
 ))
 
+const getFrontTrackPosition = (slot: number, lastSlot: number) => {
+  const progress = Math.min(1, Math.max(0, slot / lastSlot))
+  const arcProgress = 4 * progress * (1 - progress)
+  return {
+    left: applicationArc.leftStart + (applicationArc.leftEnd - applicationArc.leftStart) * progress,
+    top: applicationArc.edgeTop + (applicationArc.centerTop - applicationArc.edgeTop) * arcProgress,
+  }
+}
+
 const getLoopStyle = (slot: number) => {
   const lastSlot = getLastTrackSlot()
-  const count = lastSlot + 1
-  const trackSlot = Math.min(lastSlot, Math.max(0, slot))
-  const position = getArcStyle(trackSlot, count, applicationArc)
-  if (slot >= 0 && slot <= lastSlot) return position
+  if (slot >= 0 && slot <= lastSlot) return getFrontTrackPosition(slot, lastSlot)
 
   const entering = slot > lastSlot
   const turnProgress = Math.min(1, Math.abs(slot - (entering ? lastSlot : 0)))
   const horizontalInset = backTrackInset * Math.sin(turnProgress * Math.PI / 2)
   const backArcLift = backTrackLift * Math.sin(turnProgress * Math.PI)
   return {
-    left: `${entering ? applicationArc.leftEnd - horizontalInset : applicationArc.leftStart + horizontalInset}%`,
-    top: `${applicationArc.edgeTop - backArcLift}%`,
+    left: entering ? applicationArc.leftEnd - horizontalInset : applicationArc.leftStart + horizontalInset,
+    top: applicationArc.edgeTop - backArcLift,
+  }
+}
+
+const getCompositedPosition = (position: { left: number; top: number }) => {
+  if (layerSize.value.width === 0 || layerSize.value.height === 0) {
+    return { left: `${position.left}%`, top: `${position.top}%` }
+  }
+  return {
+    left: 0,
+    top: 0,
+    transform: `translate3d(${position.left * layerSize.value.width / 100}px, ${position.top * layerSize.value.height / 100}px, 0)`,
   }
 }
 
@@ -73,7 +91,7 @@ const getNodeStyle = (index: number) => {
   const nodeVisible = isVisible(index)
   const lastSlot = getLastTrackSlot()
   const backTrack = slot < 0 || slot > lastSlot
-  const position = nodeVisible ? getLoopStyle(slot) : getArcStyle(lastSlot, visibleCount.value, applicationArc)
+  const position = nodeVisible ? getLoopStyle(slot) : getFrontTrackPosition(lastSlot, lastSlot)
   const edgeOpacity = slot < 0 ? slot + 1 : slot > lastSlot ? lastSlot + 1 - slot : 1
   const trackProgress = Math.min(1, Math.max(0, slot / lastSlot))
   const frontDepth = Math.sin(Math.PI * trackProgress)
@@ -82,7 +100,7 @@ const getNodeStyle = (index: number) => {
     ? 0.38 * Math.sqrt(Math.max(0, Math.min(1, edgeOpacity)))
     : frontOpacity
   return {
-    ...position,
+    ...getCompositedPosition(position),
     zIndex: backTrack ? 1 : Math.round(10 + frontDepth * 10),
     opacity: nodeVisible ? opacity : 0,
     visibility: nodeVisible ? ('visible' as const) : ('hidden' as const),
@@ -90,7 +108,8 @@ const getNodeStyle = (index: number) => {
   }
 }
 
-const updateVisibleCount = (width: number) => {
+const updateLayout = (width: number, height: number) => {
+  layerSize.value = { width, height }
   const maxCount = Math.floor(width * arcUsableWidthRatio / nodeMinWidth)
   visibleCount.value = Math.min(maximumVisibleCount, props.nodes.length, Math.max(minimumVisibleCount, maxCount))
 }
@@ -121,8 +140,9 @@ const resume = () => { isPaused.value = false; start() }
 
 onMounted(() => {
   if (layerElement.value) {
-    updateVisibleCount(layerElement.value.getBoundingClientRect().width)
-    resizeObserver = new ResizeObserver(([entry]) => updateVisibleCount(entry.contentRect.width))
+    const bounds = layerElement.value.getBoundingClientRect()
+    updateLayout(bounds.width, bounds.height)
+    resizeObserver = new ResizeObserver(([entry]) => updateLayout(entry.contentRect.width, entry.contentRect.height))
     resizeObserver.observe(layerElement.value)
   }
   start()
@@ -166,13 +186,13 @@ onBeforeUnmount(() => { stop(); resizeObserver?.disconnect() })
 </template>
 
 <style scoped>
-.application-node { top: 27.2%; width: 12%; will-change: top, left, opacity; }
-.application-visual { position: relative; display: block; width: 4.4146cqw; height: 4.1147cqw; margin: 0 auto; overflow: visible; transition: filter .25s ease, transform .25s ease; }
+.application-node { top: 27.2%; width: 12%; will-change: transform, opacity; backface-visibility: hidden; }
+.application-visual { position: relative; display: block; width: 4.4146cqw; height: 4.1147cqw; margin: 0 auto; overflow: visible; transition: filter .25s ease; }
 .application-icon { display: block; width: 100%; height: 100%; object-fit: contain; }
 .application-node .node-label { display: -webkit-box; min-height: 2.5em; overflow: hidden; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; transition: opacity .2s ease; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .application-node.is-back-track .node-label { opacity: .22; }
 .application-node.is-back-track .application-icon { filter: brightness(.78) saturate(.72); }
-.application-node.is-active .application-visual { transform: translateY(-.2879cqw); filter: drop-shadow(0 0 .7678cqw #63dcff); }
+.application-node.is-active .application-visual { filter: drop-shadow(0 0 .7678cqw #63dcff); }
 .application-node.is-active .node-label { color: #fff; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .application-node { transition: none; } }
 </style>

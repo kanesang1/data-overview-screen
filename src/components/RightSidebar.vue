@@ -26,7 +26,7 @@ const departments = ref<DataAssetApplicationItem[]>([])
 const trendOption = shallowRef<EChartsOption>({
   tooltip: { trigger: 'axis', backgroundColor: 'rgba(5, 21, 45, .94)', borderColor: '#2c8fdb', textStyle: { color: '#dff4ff' } },
   legend: { show: false, selectedMode: true, data: [labels.dataVolume, labels.growthRate] },
-  grid: { top: '7%', right: '10%', bottom: '14%', left: '10%' },
+  grid: { top: '7%', right: '14%', bottom: '14%', left: '10%' },
   xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'], axisLine: { lineStyle: { color: '#526274' } }, axisLabel: { color: '#8ca0b4', fontSize: 10 } },
   yAxis: [
     { type: 'value', min: 0, axisLine: { lineStyle: { color: 'rgba(255, 255, 255, .40)' } }, axisLabel: { color: 'rgba(255, 255, 255, .40)', fontSize: 11, fontWeight: 400 }, splitLine: { interval: (index: number) => index !== 0, lineStyle: { color: 'rgba(255, 255, 255, .40)', type: 'solid' } } },

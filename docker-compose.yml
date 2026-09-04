@@ -1,0 +1,24 @@
+services:
+  web-dev:
+    build:
+      context: .
+      args:
+        BUILD_MODE: development
+        NGINX_CONFIG: nginx.dev.conf
+    image: data-overview-screen:dev
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    profiles: ["dev"]
+
+  web-test:
+    build:
+      context: .
+      args:
+        BUILD_MODE: test
+        NGINX_CONFIG: nginx.test.conf
+    image: data-overview-screen:test
+    ports:
+      - "8082:80"
+    restart: unless-stopped
+    profiles: ["test"]

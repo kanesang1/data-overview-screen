@@ -34,6 +34,15 @@ Axios 实例位于 `src/api/http.ts`，已配置请求超时、Bearer Token 注�
 
 ## 本地运行
 
+右上角“管理平台”按钮优先使用 `window.location.search` 中的 `returnUrl` 参数，
+通过 `window.location.assign` 在当前标签页回到管理端，不额外拼接 token。
+例如：`http://localhost:5173/?token=example&returnUrl=https%3A%2F%2Fadmin.example.com%2F#/`。
+
+直接打开或收藏大屏时，可在对应环境文件（或 `.env.development.local` / `.env.test.local`）
+中设置 `VITE_ADMIN_URL=https://admin.example.com/` 作为兜底地址。该配置在构建时注入，
+修改后需重启开发服务或重新打包。两者都未提供时，点击按钮提示“请从管理端进入”；
+地址必须为完整的 HTTP(S) URL。
+
 ```bash
 npm install
 npm run dev        # 开发环境，默认 http://localhost:5173

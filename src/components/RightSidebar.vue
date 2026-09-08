@@ -82,7 +82,7 @@ onMounted(() => {
 <template>
   <aside class="right-sidebar">
     <PanelSection :title="labels.application" :icon="appIcon">
-      <div class="application-content"><div class="department-grid"><article v-for="item in departments" :key="item.departmentName"><h3>{{ item.departmentName }}</h3><p>{{ labels.table }} <b>{{ item.tableCnt }}</b><small>{{ labels.unit }}</small></p><p>{{ labels.ratio }} <b>{{ item.departmentRatio }}{{ labels.ratioUnit }}</b></p></article></div><img class="application-orb" :src="applicationOrb" alt="" /></div>
+      <div class="application-content"><div class="department-grid"><article v-for="item in departments" :key="item.departmentName"><h3>{{ item.departmentName }}</h3><p>{{ labels.table }} <b>{{ item.tableCnt }}</b><small>{{ labels.unit }}</small></p><p>{{ labels.ratio }} <b>{{ item.departmentRatio }}{{ labels.ratioUnit }}</b></p></article></div><div class="application-orb" aria-hidden="true"><img class="application-orb__ripples" :src="applicationOrb" alt="" /><img class="application-orb__core" :src="applicationOrb" alt="" /></div></div>
     </PanelSection>
     <PanelSection class="panel-section--secondary" :title="labels.trend" :icon="trendIcon"><div class="trend-area"><div class="trend-legend"><button :class="{ 'is-muted': !trendSelection.bar }" type="button" @click="toggleTrend('bar')"><i class="legend-bar" />{{ labels.dataVolume }}</button><button :class="{ 'is-muted': !trendSelection.line }" type="button" @click="toggleTrend('line')"><i class="legend-line" />{{ labels.growthRate }}</button></div><span class="trend-unit">{{ labels.trendUnit }}</span><div class="trend-chart"><EChart ref="trendChart" :option="trendOption" /></div></div></PanelSection>
   </aside>
@@ -90,6 +90,24 @@ onMounted(() => {
 
 <style scoped>
 .right-sidebar { display: flex; align-items: flex-end; flex-direction: column; gap: 0; }.right-sidebar :deep(.panel-section) { width: 21.1458vw; }.right-sidebar :deep(.panel-section--secondary) { width: 17.7083vw; }.application-content { position: relative; width: 21.1458vw; height: 36.0185vh; }.department-grid { display: grid; grid-template-columns: repeat(2, 9.8958vw); column-gap: 1.3542vw; row-gap: 1.8519vh; padding-top: 1.8519vh; }.department-grid article { width: 9.8958vw; height: 12.037vh; background: linear-gradient(90deg, rgba(30, 63, 126, .3) 0%, rgba(31, 67, 138, 0) 100%); }.department-grid article:nth-child(even) { background: linear-gradient(270deg, rgba(30, 63, 126, .3) 0%, rgba(31, 67, 138, 0) 100%); }.department-grid article:nth-child(3) { clip-path: polygon(0 0, 100% 0, 100% 100%, 17% 100%, 0 74%); }.department-grid h3 { height: 2.6852vh; margin: 0; padding: .463vh .5208vw; color: rgba(255,255,255,.8); font-size: .7292vw; font-weight: 500; background: linear-gradient(90deg, rgba(38, 91, 170, .8), rgba(17, 45, 91, .15)); }.department-grid article:nth-child(even) h3 { text-align: right; background: linear-gradient(270deg, rgba(38, 91, 170, .8), rgba(17, 45, 91, .15)); }.department-grid p { margin: 1.1111vh 1.0938vw 0; color: rgba(255,255,255,.6); font-size: .625vw; }.department-grid b { margin-left: .7292vw; font-size: 1.0417vw; font-weight: 900; background: linear-gradient(180deg, #fff 0%, #64c7ff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }.department-grid small { margin-left: .2083vw; color: rgba(255,255,255,.4); font-size: .625vw; }.application-orb { position: absolute; z-index: 2; top: 12.037vh; left: 50%; width: 5vw; height: 5vw; transform: translateX(-50%); }.trend-area { width: 17.7083vw; margin-top: 1.8519vh; }.trend-meta { display: flex; justify-content: space-between; color: rgba(255,255,255,.5); font-size: .5729vw; }.trend-meta div { color: rgba(255,255,255,.6); }.trend-meta button { padding:0; color:inherit; font:inherit; border:0; outline:0; appearance:none; -webkit-appearance:none; border-radius:0; box-shadow:none; background:transparent; cursor:pointer; }.trend-meta button.is-muted { opacity:.35; }.legend-bar { display:inline-block; width:.5208vw; height:.5208vw; margin-right:.2604vw; background:#117fec; }.legend-line { position:relative; display:inline-block; width:.9375vw; height:.1042vw; margin:0 .2604vw .1563vw .8333vw; vertical-align:middle; background:#00e8dc; }.legend-line::after { content:''; position:absolute; top:50%; left:50%; width:.4167vw; height:.4167vw; box-sizing:border-box; border:.1042vw solid #00e8dc; border-radius:50%; background:#061329; transform:translate(-50%,-50%); }.trend-chart { width: 17.7083vw; height: 24.7222vh; margin-top: .7407vh; }
+/* Split the original artwork with masks so only the outer rings scale. */
+.application-orb { pointer-events: none; }
+.application-orb__ripples,
+.application-orb__core { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.application-orb__ripples {
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent 64%, #000 65%);
+  mask-image: radial-gradient(circle closest-side, transparent 64%, #000 65%);
+  transform-origin: center;
+  animation: application-orb-ripple 2.8s ease-in-out infinite;
+}
+.application-orb__core { clip-path: circle(32% at 50% 50%); }
+@keyframes application-orb-ripple {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(.84); opacity: .65; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .application-orb__ripples { animation: none; }
+}
 .application-content { transform: translateY(.2778vh); }
 .trend-area { margin-top: 1.4815vh; }
 .trend-chart { margin-top: 1.4815vh; }

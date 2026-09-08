@@ -2,11 +2,11 @@
   "common": {
     "qualityDimensions": {
       "fieldLabels": {
-        "waveformScore": "波形",
-        "targetScore": "目标",
-        "clutterScore": "杂波",
-        "sceneScore": "场景",
-        "climateScore": "气候"
+        "waveformScore": "波形完备性",
+        "targetScore": "目标完备性",
+        "clutterScore": "杂波完备性",
+        "sceneScore": "场景完备性",
+        "climateScore": "气候完备性"
       },
       "fieldUnits": {
         "waveformScore": "分",
@@ -79,6 +79,14 @@
     }
   },
   "centerTree": {
+    "scenario": {
+      "fieldLabels": {
+        "scenarioOne": "应用场景一",
+        "scenarioTwo": "应用场景二",
+        "scenarioThree": "应用场景三",
+        "scenarioFour": "应用场景四"
+      }
+    },
     "service": {
       "title": "数据服务",
       "fieldLabels": {

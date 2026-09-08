@@ -47,6 +47,7 @@ export interface DashboardLabels {
     fieldUnits: Record<OverviewField, string>
   }
   centerTree: {
+    scenario: { fieldLabels: Record<'scenarioOne' | 'scenarioTwo' | 'scenarioThree' | 'scenarioFour', string> }
     service: {
       title: string
       fieldLabels: Record<'serviceDesc' | 'serviceCnt', string>
@@ -101,6 +102,7 @@ const emptyLabels: DashboardLabels = {
     fieldUnits: { totalCnt: '', recordMom: '', totalTable: '', totalSize: '' },
   },
   centerTree: {
+    scenario: { fieldLabels: { scenarioOne: '', scenarioTwo: '', scenarioThree: '', scenarioFour: '' } },
     service: {
       title: '',
       fieldLabels: { serviceDesc: '', serviceCnt: '' },

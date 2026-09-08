@@ -70,7 +70,7 @@ onMounted(() => {
 <template>
   <aside class="left-sidebar">
     <PanelSection :title="labels.quality" :icon="qualityIcon">
-      <div class="quality-visual"><img class="quality-dimensions" :src="qualityDimensions" alt="" /><div class="quality-summary"><strong>{{ dashboardLabels.leftTop.dimensionTitle }}</strong><span><b>{{ dimensions.length || '--' }}</b>{{ dashboardLabels.leftTop.dimensionUnit }}</span></div><div class="dimension-list"><div v-for="item in dimensions" :key="item.name"><span>{{ item.name }}</span><b>{{ item.value }}<small>{{ dashboardLabels.common.qualityDimensions.fieldUnits[item.field] }}</small></b></div></div></div>
+      <div class="quality-visual"><img class="quality-dimensions" :src="qualityDimensions" alt="" /><div class="quality-summary"><strong>{{ dashboardLabels.leftTop.dimensionTitle }}</strong><span><b>{{ qualityDetail?.datasetscore ?? qualityDetail?.datasetScore ?? '--' }}</b>{{ dashboardLabels.leftTop.dimensionUnit }}</span></div><div class="dimension-list"><div v-for="item in dimensions" :key="item.name"><span>{{ item.name }}</span><b>{{ item.value }}<small>{{ dashboardLabels.common.qualityDimensions.fieldUnits[item.field] }}</small></b></div></div></div>
     </PanelSection>
     <PanelSection class="panel-section--secondary" :title="labels.source" :icon="sourceIcon">
       <div class="source-chart"><EChart ref="sourceChart" :option="sourceOption" /></div>

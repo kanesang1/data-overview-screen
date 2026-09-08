@@ -33,8 +33,8 @@
   },
   "leftTop": {
     "title": "数据质量评价",
-    "dimensionTitle": "数据质量维度",
-    "dimensionUnit": "个"
+    "dimensionTitle": "综合评分",
+    "dimensionUnit": "分"
   },
   "leftBottom": {
     "title": "数据资产来源",

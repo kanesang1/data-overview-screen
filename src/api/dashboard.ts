@@ -51,7 +51,9 @@ export interface DataEvaluateDetailItem {
   /** 数据集数据量。 */
   datasetCnt: number
   /** 数据集综合评分。 */
-  datasetScore: number
+  datasetScore?: number
+  /** 兼容接口返回的小写综合评分字段。 */
+  datasetscore?: number
   /** 波形维度评分。 */
   waveformScore: number
   /** 目标维度评分。 */

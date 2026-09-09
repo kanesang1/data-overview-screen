@@ -1,81 +1,58 @@
-# 数据总览大屏：部署与维护说明
+# 数据总览大屏：Docker 完全离线部署
 
-本文面向负责部署、接口联调和维护的后端人员。拿到打包文件后，服务器无需安装 Node.js，也无需运行 npm 命令。
+## 1. 直接部署
 
-## 1. 交付文件
+适用：Linux x86_64 或 ARM64，已经安装并启动 Docker 20.10 或更新版本，当前用户有 Docker 使用权限。无需 Node.js、npm、Nginx、Docker Compose、curl，也无需连接互联网。Docker 使用本机 daemon，勿将 DOCKER_HOST 指向其他服务器。
 
-大屏由 Nginx 提供静态页面访问，浏览器对 `/api/bi/` 的请求由 Nginx 转发给后端。
+将整个 dist 目录复制到服务器（例如 /opt/dashboard），在目录内执行：
 
-前端交付的 `dist` 是构建完成的发布目录，请将其中全部内容上传到服务器，不要只上传 `index.html`。本文以 Linux 服务器的 `/opt/dashboard` 为部署目录。
+```sh
+sh start.sh
+# 等效：sh deploy.sh
+```
+
+默认访问 **http://服务器IP:8082/**。服务器有图形桌面时可将 start.sh 设为可执行后选择“在终端中运行”；无桌面服务器使用上面的命令。脚本结束后容器在后台继续运行，Docker 重启后自动恢复。
+
+脚本自动识别 Docker 的 CPU 架构、导入随包镜像、检查 Nginx 配置、启动容器，并检查首页、健康端点和文案文件。不会执行 docker pull，也不会在服务器安装软件。业务接口的鉴权失败不会误报为部署失败。
+
+默认容器名 data-overview-offline。重复执行会替换该脚本创建的同名容器，不会替换管理平台等其他容器。同名容器不属于本部署时会停止并提示。
+
+## 2. dist 文件
 
 ```text
-/opt/dashboard/
-├── README.md                       本说明
-├── index.html                      页面入口
-├── assets/                         页面程序、样式和图片
-├── config/dashboard-labels.json    界面文案配置
-├── deploy.sh                       自动部署脚本
-└── deploy/
-    ├── docker-compose.yml          容器配置
-    ├── nginx.dev.conf              关闭静态资源缓存
-    └── nginx.test.conf             部分静态资源缓存 7 天
+dist/
+├── start.sh                        一键启动入口
+├── deploy.sh                       离线导入和启动脚本
+├── README.md
+├── index.html
+├── assets/
+├── config/dashboard-labels.json
+├── deploy/nginx.offline.conf        端口和主备后端配置
+└── images/
+    ├── nginx-linux-amd64.tar        x64 离线镜像
+    ├── nginx-linux-amd64.tar.sha256
+    ├── nginx-linux-arm64.tar        ARM64 离线镜像
+    └── nginx-linux-arm64.tar.sha256
 ```
 
-其他图片目录也需要一起上传。
+请完整复制目录。镜像文件不能只留在开发电脑。HTTP 服务仅开放页面、assets 和文案文件，不会暴露镜像、脚本或部署配置。
 
-## 2. 首次部署
+## 3. 后端与端口
 
-服务器需安装 Docker、Docker Compose V2 和 curl，启动 Docker 服务，并能拉取 `nginx:1.27-alpine` 镜像。确认对外端口未被占用，防火墙和安全组已放行。
-
-```bash
-# 以下命令在 Linux 服务器执行
- docker --version
- docker compose version
- curl --version
- mkdir -p /opt/dashboard
-```
-
-上传发布文件后，确认 `/opt/dashboard/index.html` 存在，再执行：
-
-```bash
-cd /opt/dashboard
-bash deploy.sh
-```
-
-默认对外端口为 `80`，使用 `nginx.dev.conf`。浏览器访问 `http://服务器IP/`。
-
-如需改为 `8082` 端口并使用测试环境的 Nginx 配置：
-
-```bash
-cd /opt/dashboard
-WEB_PORT=8082 NGINX_ENV=test bash deploy.sh
-```
-
-浏览器访问 `http://服务器IP:8082/`。这些变量只对本次命令生效，后续部署需要再次传入相同值。`NGINX_ENV` 只选择 Nginx 配置，不会修改已打包进页面的前端环境参数。
-
-当前容器名固定为 `data-overview-dev`，选择 test 时也不变。这套配置用于单实例部署，不能直接用它同时启动两套环境。
-
-脚本会检查文件、拉取镜像、更新容器、等待健康检查，并检查页面、文案文件和 `/api/bi/data-source` 接口。失败时输出最近的容器日志。最后一步接口检查不携带登录凭证，如果接口要求鉴权而返回 401/403，脚本也会报失败，应结合接口响应判断原因。
-
-## 3. 修改后端接口地址
-
-默认请求路径：浏览器 → 大屏 `/api/bi/xxx` → Docker 宿主机的 `8080/api/bi/xxx`。
-
-当前启用的 `deploy/nginx.dev.conf` 或 `deploy/nginx.test.conf` 中有：
+修改 deploy/nginx.offline.conf，然后重新执行 sh start.sh：
 
 ```nginx
-proxy_pass http://host.docker.internal:8080/api/bi/;
+upstream dashboard_backend {
+    server 127.0.0.1:8080 max_fails=1 fail_timeout=5s;
+    server 8.148.14.229:8080 backup;
+}
 ```
 
-`host.docker.internal` 在本 Compose 配置中指向宿主机。后端需允许来自容器的连接，仅监听宿主机 `127.0.0.1` 可能导致容器无法访问。
+优先请求同机 8080 端口；连接失败、超时、502/503/504 时尝试备用地址，主服务短暂避让 5 秒后重新尝试。401/403/404 不切换。不开启非幂等请求重试。完全离线时公网备用地址不可达，必须启动同机业务后端才能显示真实数据，本包只包含前端和 Web 服务。
 
-如果后端在其他服务器或端口，修改主机和端口，保留接口路径及末尾斜杠。例如：
+容器使用 Linux host 网络，所以 127.0.0.1 就是服务器本机。后端若也在 Docker 中，须将后端端口发布到宿主机 8080，或自行调整代理地址。主备服务应提供相同接口和鉴权方式。
 
-```nginx
-proxy_pass http://192.168.1.10:8080/api/bi/;
-```
-
-修改后，使用原来的端口和环境重新执行部署命令。
+默认 listen 8082，避免与后端 8080 和管理平台常用端口冲突。可直接修改 listen 数值，确保端口未占用且允许客户端访问。host 网络无需再配置 Docker 端口映射。
 
 ## 4. 修改界面标题、字段名称和单位
 
@@ -112,61 +89,35 @@ http://大屏地址/?returnUrl=https%3A%2F%2Fadmin.example.com%2F#/
 
 返回地址必须是完整的 HTTP(S) 地址。按钮不会额外拼接 token。未传参数时使用构建时的 `VITE_ADMIN_URL`；两者都没有时提示“请从管理端进入”。修改兜底地址需要修改源码环境配置并重新打包，修改服务器上的 `.env` 不会改变已构建的页面。
 
-## 6. 更新与回退
+## 6. 更新、停止与排错
 
-1. 记录当前 `WEB_PORT` 和 `NGINX_ENV`，将现有部署目录完整备份到另一个目录。
-2. 上传新发布包的全部内容。对比并保留现场修改过的文案和 Nginx 后端地址。
-3. 使用原来的端口和环境执行部署命令，验证页面和接口。
-4. 需要回退时，将部署目录恢复为完整的上一版备份，再使用原来的端口和环境执行部署命令。
+更新前备份整个旧目录，保留现场修改的 Nginx 和文案配置；将新版完整复制后执行 sh start.sh。回退时恢复旧目录并执行同一命令。上传期间请安排维护窗口，避免新旧页面文件混用。
 
-上传期间运行中的服务可能读到新旧混合文件，请安排维护窗口。现场配置变更应同步回源码并记录。
-
-| 修改内容 | 生效方式 |
-| --- | --- |
-| `config/dashboard-labels.json` 文案 | 保存并刷新浏览器 |
-| `README.md` 说明 | 保存文件，无需重启 |
-| Nginx 代理地址、对外端口 | 使用对应端口和环境重新执行部署命令 |
-| 页面逻辑、样式、构建环境参数 | 从源码重新打包并发布 |
-
-## 7. 检查与排错
-
-以下命令使用默认端口和环境。实际使用其他值时，请修改 Compose 命令中的变量及 curl 地址中的端口。
-
-```bash
-cd /opt/dashboard
-WEB_PORT=80 NGINX_ENV=dev docker compose -f deploy/docker-compose.yml ps
-WEB_PORT=80 NGINX_ENV=dev docker compose -f deploy/docker-compose.yml logs --tail=100 dashboard
-docker exec data-overview-dev nginx -t
-curl -i http://127.0.0.1/health
-curl -i http://127.0.0.1/api/bi/data-source
+```sh
+docker ps -a --filter name=data-overview-offline
+docker logs --tail 100 data-overview-offline
+docker exec data-overview-offline nginx -t
+docker stop data-overview-offline
+docker start data-overview-offline
 ```
 
-Compose 文件位于 `deploy/` 下，不能在发布根目录直接执行不带 `-f` 的 `docker compose ps`。
+页面无法访问：检查日志中的端口占用或配置错误，以及防火墙。页面正常但无数据：检查后端服务和登录凭证。401/403 是鉴权问题；502/504 是后端连接问题。内核、Docker 或 CPU 过旧而无法启动 Alpine 镜像时，需要根据服务器实际信息制作对应基础镜像，不能保证任意 Linux 版本均兼容。
 
-| 现象 | 排查方式 |
-| --- | --- |
-| 页面打不开 | 检查容器、端口占用、防火墙和安全组，先在服务器请求 `/health` |
-| `/health` 正常但没有数据 | 健康检查只说明 Nginx 存活，继续检查业务接口响应和后端日志 |
-| 接口返回 502/504 | 检查后端服务、代理地址和端口，以及容器到后端的网络连接 |
-| 接口返回 401/403 | 检查登录状态、请求的 Authorization 和后端鉴权规则 |
-| 更新后空白或资源 404 | 确认发布包上传完整，尤其是 `assets/`，再强制刷新浏览器 |
-| 修改文案未生效 | 确认修改的是服务器的 `config/dashboard-labels.json`，检查 JSON 格式并刷新 |
-| 修改 Nginx 未生效 | 确认修改的是当前环境对应的配置，并重新执行部署命令 |
+## 7. 开发电脑打包
 
-## 8. 如何维护本文档
+构建入口会检查 Node 版本：支持 Node.js 22 或更新版本；若当前终端版本较旧，会尝试使用项目内 `.tools/node/node.exe`（Windows）或 `.tools/node/node`（Linux）。也可通过 `BUILD_NODE` 指定新版本 Node 的绝对路径。当前开发电脑已准备项目内运行程序，直接执行 `npm run build` 即可，无需切换系统 Node。此运行程序仅用于开发构建，不需要复制到离线服务器。其他开发电脑需自行准备兼容的 Node；`.tools` 不纳入 Git。
 
-唯一维护源文件是代码仓库中的 **`public/README.md`**，使用普通文本编辑器修改即可。打包会自动复制为 **`dist/README.md`**，随发布包交付。不要只修改 `dist/README.md`，下次打包会覆盖它。
+首次在联网且具备 Docker、Node.js 和 npm 的开发电脑准备镜像：
 
-部署命令、默认端口、后端地址、配置路径或脚本行为变化时，应在同一次代码变更中更新本文，并按说明核对实际文件和命令。不要在示例中写入真实 token、密码等凭证。
-
-仅更新说明时，可把修改后的源文件复制到服务器部署目录的 `README.md`，无需重启；同时提交源码，确保下次发布带上最新版文档。
-
-拿到源码需要自行打包时，在安装好 Node.js 22 和 npm 的机器上执行：
-
-```bash
+```sh
 npm ci
-npm run build:dev
-# 或使用测试环境：npm run build:test
+npm run prepare:images
+npm run build
+# 也可使用 npm run build:dev / npm run build:test
 ```
 
-构建后交付 `dist` 的全部内容。
+镜像缓存于 .offline-images，后续构建直接复制缓存并验证 SHA256，不重复下载；缺少任一架构镜像或校验失败时构建明确失败，避免交付无法离线启动的残缺包。npm run build:web 仅用于传统 Dockerfile 的内部前端构建，不是离线交付命令。
+
+部署说明源文件为 public/README.md，构建时自动复制到 dist。前端资源均随包加载；管理平台返回地址仍需通过 returnUrl 指向内网管理平台，或在打包前配置 VITE_ADMIN_URL。
+
+本次交付镜像通过 DaoCloud 的 Docker Hub 公共缓存获取 nginx:1.27-alpine，已校验镜像层及归档 SHA256。若开发电脑无法直连 Docker Hub，可在运行 prepare:images 前设置 OFFLINE_IMAGE_SOURCE=docker.m.daocloud.io/library/nginx:1.27-alpine；运行脚本仍统一使用包内 nginx:1.27-alpine 标签。

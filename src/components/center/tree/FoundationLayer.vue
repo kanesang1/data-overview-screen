@@ -9,6 +9,13 @@ import { dashboardLabels } from '@/config/dashboard-labels'
 
 const props = defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
 
+// SVG export sizes include shadow padding; preserve their native scale at 1920 × 1080.
+const foundationIconSizes = [[53, 48], [45, 48], [49, 48], [48, 46], [64, 64], [46, 46], [42, 48], [42, 42], [44, 44]]
+const getFoundationIconStyle = (index: number) => {
+  const [width, height] = foundationIconSizes[index % foundationIconSizes.length]
+  return { width: `${width / 1042 * 100}cqw`, height: `${height / 1042 * 100}cqw` }
+}
+
 type DimensionScoreKey = keyof NonNullable<TreeNode['dimensionScores']>
 
 const dimensionScoreFields: DimensionScoreKey[] = [
@@ -157,7 +164,7 @@ const getFoundationArcStyle = (index: number, count: number) => {
       <span class="foundation-visual">
         <img class="foundation-base" :src="nodeBaseDefault" alt="" />
         <img v-if="selectedFoundationId === node.id" class="foundation-glow" :src="nodeBaseActive" alt="" />
-        <img class="foundation-icon" :src="node.icon" alt="" />
+        <img class="foundation-icon" :src="node.icon" :style="getFoundationIconStyle(index)" alt="" />
       </span>
       <span class="node-label">{{ node.label }}</span>
       <span class="node-metric"><b>{{ node.value }}</b><small>{{ node.unit }}</small></span>
@@ -188,7 +195,7 @@ const getFoundationArcStyle = (index: number, count: number) => {
 .foundation-visual { position: relative; display: block; width: 9.405cqw; height: 7.8695cqw; margin: 0 auto; transition: filter .25s ease, transform .25s ease; }
 .foundation-base, .foundation-glow { position: absolute; left: 50%; bottom: 0; width: 9.405cqw; height: 7.8695cqw; transform: translateX(-50%); object-fit: contain; }
 .foundation-glow { z-index: 1; pointer-events: none; }
-.foundation-icon { position: absolute; z-index: 2; left: 50%; bottom: 2.3033cqw; width: 4.0307cqw; height: 5.3743cqw; transform: translateX(-50%); }
+.foundation-icon { position: absolute; z-index: 2; left: 50%; bottom: 1.1516cqw; transform: translateX(-50%); object-fit: contain; }
 .foundation-node.is-active .foundation-visual { filter: brightness(1.18) drop-shadow(0 0 .8637cqw rgba(81,218,255,.8)); }
 .foundation-node.is-active .foundation-icon { filter: brightness(1.5); }
 .foundation-node .node-label { margin-top: -.3839cqw; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: normal; }

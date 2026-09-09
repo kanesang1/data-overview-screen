@@ -7,7 +7,15 @@ import metricTwo from '@/assets/img/center/total-view-icon/overview-metric-02.sv
 import metricThree from '@/assets/img/center/total-view-icon/overview-metric-03.svg'
 import metricFour from '@/assets/img/center/total-view-icon/overview-metric-04.svg'
 import architectureBackground from '@/assets/img/center/tree/architecture-background.png'
-import foundationIcon from '@/assets/img/center/tree/two/application-node-icon.svg'
+import foundationIconOne from '@/assets/img/center/tree/three/Vector.svg'
+import foundationIconTwo from '@/assets/img/center/tree/three/Vector (1).svg'
+import foundationIconThree from '@/assets/img/center/tree/three/Vector (2).svg'
+import foundationIconFour from '@/assets/img/center/tree/three/Vector (3).svg'
+import foundationIconFive from '@/assets/img/center/tree/three/Vector (4).svg'
+import foundationIconSix from '@/assets/img/center/tree/three/Vector (5).svg'
+import foundationIconSeven from '@/assets/img/center/tree/three/Vector (6).svg'
+import foundationIconEight from '@/assets/img/center/tree/three/Vector (7).svg'
+import foundationIconNine from '@/assets/img/center/tree/three/Vector (8).svg'
 import { dashboardLabels } from '@/config/dashboard-labels'
 import TopMetrics from './center/cards/TopMetrics.vue'
 import ApplicationLayer from './center/tree/ApplicationLayer.vue'
@@ -22,6 +30,11 @@ import './center/tree/tree-shared.css'
 
 const applicationNodes = ref<TreeNode[]>([])
 const foundationNodes = ref<TreeNode[]>([])
+const foundationIcons = [
+  foundationIconOne, foundationIconTwo, foundationIconThree,
+  foundationIconFour, foundationIconFive, foundationIconSix,
+  foundationIconSeven, foundationIconEight, foundationIconNine,
+]
 const metrics = ref<MetricCard[]>([])
 const serviceNodes = ref<TreeNode[]>([])
 
@@ -55,12 +68,12 @@ const mapApplicationNode = (item: DataEvaluateDetailItem): TreeNode => ({
   },
 })
 
-const mapFoundationNode = (item: DataEvaluateDetailItem): TreeNode => ({
+const mapFoundationNode = (item: DataEvaluateDetailItem, index: number): TreeNode => ({
   id: item.datasetId,
   label: item.datasetDesc,
   value: String(item.datasetCnt),
   unit: dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt,
-  icon: foundationIcon,
+  icon: foundationIcons[index % foundationIcons.length],
   dimensionScores: {
     waveformScore: item.waveformScore,
     targetScore: item.targetScore,

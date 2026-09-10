@@ -12,7 +12,7 @@ import ServiceImageDialog from './ServiceImageDialog.vue'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
 
-const serviceArc: ArcLayout = { leftStart: 19.5, leftEnd: 67.4, edgeTop: 1, centerTop: 4.95 }
+const serviceArc: ArcLayout = { leftStart: 25.5, leftEnd: 61.4, edgeTop: 1, centerTop: 4.95 }
 const selectedId = ref<number | null>(null)
 const tooltipId = ref<number | null>(null)
 const dialogNode = ref<TreeNode | null>(null)

@@ -59,6 +59,17 @@ const mapServiceNode = (item: DataServiceItem): TreeNode => ({
 const mapApplicationNode = (item: DataEvaluateDetailItem): TreeNode => ({
   id: item.datasetId,
   label: item.datasetDesc,
+  tooltip: {
+    projectName: item.datasetDesc,
+    projectCount: item.datasetCnt,
+    items: [
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.waveformScore, value: `${item.waveformScore}${dashboardLabels.common.qualityDimensions.fieldUnits.waveformScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.targetScore, value: `${item.targetScore}${dashboardLabels.common.qualityDimensions.fieldUnits.targetScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.clutterScore, value: `${item.clutterScore}${dashboardLabels.common.qualityDimensions.fieldUnits.clutterScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.sceneScore, value: `${item.sceneScore}${dashboardLabels.common.qualityDimensions.fieldUnits.sceneScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.climateScore, value: `${item.climateScore}${dashboardLabels.common.qualityDimensions.fieldUnits.climateScore}` },
+    ],
+  },
   dimensionScores: {
     waveformScore: item.waveformScore,
     targetScore: item.targetScore,
@@ -74,6 +85,17 @@ const mapFoundationNode = (item: DataEvaluateDetailItem, index: number): TreeNod
   value: String(item.datasetCnt),
   unit: dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt,
   icon: foundationIcons[index % foundationIcons.length],
+  tooltip: {
+    projectName: item.datasetDesc,
+    projectCount: item.datasetCnt,
+    items: [
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.waveformScore, value: `${item.waveformScore}${dashboardLabels.common.qualityDimensions.fieldUnits.waveformScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.targetScore, value: `${item.targetScore}${dashboardLabels.common.qualityDimensions.fieldUnits.targetScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.clutterScore, value: `${item.clutterScore}${dashboardLabels.common.qualityDimensions.fieldUnits.clutterScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.sceneScore, value: `${item.sceneScore}${dashboardLabels.common.qualityDimensions.fieldUnits.sceneScore}` },
+      { key: dashboardLabels.common.qualityDimensions.fieldLabels.climateScore, value: `${item.climateScore}${dashboardLabels.common.qualityDimensions.fieldUnits.climateScore}` },
+    ],
+  },
   dimensionScores: {
     waveformScore: item.waveformScore,
     targetScore: item.targetScore,
@@ -137,6 +159,7 @@ onMounted(() => {
 
 <style scoped>
 .center-stage { position: absolute; z-index: 1; top: 8.8889vh; right: 23.6979vw; bottom: 3.8889vh; left: 23.6979vw; }
+.center-stage:has(.tree-layer.has-active-tooltip) { z-index: 100; }
 .architecture { position: relative; width: min(54.2708vw, 96.4559vh); height: auto; aspect-ratio: 1042 / 850; margin: 1.6667vh 0 0 50%; transform: translateX(-50%); container-type: inline-size; }
 .architecture__background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
 </style>

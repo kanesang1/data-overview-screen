@@ -16,8 +16,33 @@ Node.js 要求 22 或更新版本。Windows 已使用 nvm 的机器可执行 `nv
 
 ## 构建和交付
 
+### 无 Docker：原生 Nginx 离线部署
+
+仓库 `.offline-native/` 包含 Windows Nginx、Linux AMD64/ARM64 Nginx 及必要运行库、校验文件和许可证，随源码一起拉取。目标机器无需安装 Docker、Node.js、npm 或系统 Nginx。
+
 ```sh
-npm run build              # dist：前端、双架构镜像、校验、Windows/Linux 脚本和文档
+npm ci                       # 开发电脑首次安装依赖，需要网络或完整 npm 缓存
+npm run package:native       # artifacts/dashboard-native-production.tar.gz 和 SHA256
+npm run package:native -- test # 测试环境原生交付包
+```
+
+完整解压后，在交付目录执行：
+
+| 操作 | Windows PowerShell | Linux |
+| --- | --- | --- |
+| 启动 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1` | `sh native.sh start` |
+| 状态 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action status` | `sh native.sh status` |
+| 重载配置 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action reload` | `sh native.sh reload` |
+| 停止 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action stop` | `sh native.sh stop` |
+
+Windows 也可双击 `start-native.cmd`。默认访问 `http://服务器IP:8082/`，在 `deploy/nginx.native.conf` 修改 `listen` 端口及 upstream 后端地址（默认 `127.0.0.1:8080`），保存后重载。启动过程不联网，不调用 Docker。
+
+原生 Nginx 是后台进程，默认不注册系统服务或开机自启。Linux 需要常见系统工具、`curl` 或 `wget`，部署目录须可写且允许执行；Windows 需要 PowerShell 5.1+。详细前置条件、解包、升级回退与日志位置见 [原生部署完整说明](public/README.md#原生-nginx-离线部署无-docker)。
+
+### 完整包：同时包含 Docker 与原生入口
+
+```sh
+npm run build              # dist：前端、Docker 镜像、原生运行包、脚本和文档
 npm run package            # 重新构建，输出 artifacts/dashboard-production.tar.gz 和 SHA256
 npm run package -- test    # 测试环境交付包
 ```
@@ -31,6 +56,6 @@ npm run package -- test    # 测试环境交付包
 | Linux + 本机 Docker Engine | `sh start.sh` | `sh start.sh --mode offline` |
 | Windows + Docker Desktop Linux 引擎 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1` | `powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -Mode offline` |
 
-在解压后的目录内执行，默认端口 8082。部署机无需 Node/npm/Compose；Docker 和 Windows 的 WSL2 等运行环境须提前安装好。Windows 原生容器模式、Windows Server 上的 Docker Desktop 不在本方案支持范围；Windows Server 请使用 Linux 虚拟机并按 Linux 流程部署。
+上述 start 脚本用于 Docker，在解压后的目录内执行，默认端口 8082。Docker 和 Windows 的 WSL2 等运行环境须提前安装好。Windows 原生容器模式、Windows Server 上的 Docker Desktop 不在 Docker 方案支持范围；没有 Docker 时选择上面的原生入口，不需要 WSL。Windows Server 使用原生方案仍须根据实际系统兼容性验收。
 
 历史 `dist.rar` 是旧版产物，**不要再用它交付**。以当前提交执行 `npm run package` 生成的包为准；生成的 `dist/`、`artifacts/` 不入 Git。

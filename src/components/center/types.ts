@@ -11,6 +11,14 @@ export type TreeNode = {
   value?: string
   unit?: string
   icon?: string
+  tooltip?: {
+    projectName: string
+    projectCount: string | number
+    items: Array<{
+      key: string
+      value: string | number
+    }>
+  }
   dimensionScores?: {
     waveformScore: number
     targetScore: number

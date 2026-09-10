@@ -2,6 +2,8 @@
 
 ## 1. 选择流程
 
+**没有 Docker**：选择下方 [原生 Nginx 离线部署](#原生-nginx-离线部署无-docker)，使用 `native.ps1` / `native.sh`。**已有 Docker**：使用 `start.ps1` / `start.sh`，按下文 auto、offline、online 模式部署。两套服务默认都用 8082，同一台机器不要同时占用该端口。
+
 **拿到源码**：准备 Node.js 22+ → `npm ci` → 修改与验证 → `npm run package` → 交付 `artifacts/dashboard-production.tar.gz` 及 SHA256。
 
 **拿到交付包**：准备目标机器运行环境 → 解压整个包 → 配置后端 → 根据操作系统执行启动脚本。部署机无需 Node、npm、Nginx 或 Compose，也不编译源码。
@@ -28,7 +30,7 @@
 
 Windows 使用 Linux 镜像是因为 Docker Desktop 通过 Linux 虚拟机运行它们；不能切换到 Windows containers 后导入本包。Windows ARM64 还须安装适用于该架构且受支持的 Docker Desktop。
 
-**全新离线 Windows 机器**：在联网准备阶段下载适配的 Docker Desktop 安装程序、WSL 安装包和所需系统组件，按组织流程安装、重启并验证引擎，然后再断网部署。单有本项目的 tar 镜像不能安装 Docker/WSL。Windows Server 不支持 Docker Desktop；可准备 Linux 虚拟机及 Docker Engine，在虚拟机内使用 Linux 流程，网络需允许客户端访问虚拟机 8082 端口。本项目没有提供 Windows 原生 Nginx/Windows 容器方案。
+**选择 Docker 的全新离线 Windows 机器**：在联网准备阶段下载适配的 Docker Desktop 安装程序、WSL 安装包和所需系统组件，按组织流程安装、重启并验证引擎，然后再断网部署。单有本项目的 tar 镜像不能安装 Docker/WSL。Windows Server 不支持 Docker Desktop；可以选择本文的原生 Nginx 方案，或在 Linux 虚拟机内使用 Docker 方案。本项目不提供 Windows 容器镜像。
 
 两种平台都需要预留解压、镜像导入及旧版备份空间，并允许用户访问部署端口。首次安装 Docker 的准备工作应在交付前完成。
 
@@ -85,7 +87,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -Mode offline
 
 默认只连接本机后端，不内置公网备用地址。需要主备时取消模板中的 backup 注释并填入真实地址。连接错误、超时和 502/503/504 可切换备用；401/403 不切换，不开启非幂等请求重试。修改后重新启动部署脚本。通过域名配置的后端须在容器内可解析，否则 Nginx 检查会失败。
 
-浏览器 API 默认使用同源 `/api/bi/`，由 Nginx 转发。生产前端环境变量在构建时写入，目标机器修改 `.env` 不会改变已构建页面。首页检查成功不表示业务后端或登录验证已经通过。
+浏览器使用同源接口，由 Nginx 的 `location /api/` 完整转发路径：旧接口 `/api/bi/…`、登录 `/api/auth/login` 和排名 `/api/dataset-assets/usage-summary` 均覆盖。浏览器访问 `http://部署机IP:8082` 时，接口也请求这个地址，由部署机 Nginx 连接后端，不会连接开发环境公网地址，也不会连接客户端自己的 localhost。
+
+前后端同机时，后端默认端口为 8080，前端默认端口为 8082。Windows/Linux 原生部署以及 Linux Docker host 网络使用 `127.0.0.1:8080`；Windows Docker 使用 `host.docker.internal:8080`。如果后端端口不同，修改对应 Nginx 配置中的 upstream `server` 并重载服务，无需重新构建前端。
+
+进入大屏时，URL 的 `token` / `access_token` 优先于浏览器缓存 `access_token`；没有 token 时请求登录，HTTP 401 或业务码 401 时重新登录，并重试原请求一次。自动登录账号通过构建机 `.env.local` 的 `VITE_SCREEN_LOGIN_USERNAME` 和 `VITE_SCREEN_LOGIN_PASSWORD` 配置；在新的构建机上须配置这两个值或对应构建环境变量。VITE 变量会进入浏览器产物，交付时应使用专用只读账号。生产前端环境变量在构建时写入，目标机器修改 `.env` 不会改变已构建页面。
+
+部署验收须通过前端地址验证登录和排名接口，确认 Network 中的请求地址为部署机前端端口：无 token 时先出现登录请求，已有 token 时直接请求排名，过期 token 时登录后重试。排名返回 `data.topByUsage`，页面取前五条。首页检查成功不表示业务后端或登录验证已经通过。
 
 ## 5. 交付目录
 
@@ -222,3 +230,117 @@ docker start data-overview-offline
 | Docker 无法挂载文件 | 确认使用本机 Docker、本地完整解压目录以及 Docker 文件共享权限 |
 
 网络依据：[Docker Desktop 网络说明](https://docs.docker.com/desktop/features/networking/networking-how-tos/)、[Linux host 网络说明](https://docs.docker.com/engine/network/drivers/host/)。
+
+## 原生 Nginx 离线部署（无 Docker）
+
+### 适用范围与前置条件
+
+本方案直接运行随包 Nginx，为静态页面提供 HTTP 服务并转发 `/api/` 到业务后端。目标机器无需 Docker、Node、npm，也不需要另行下载 Nginx。离线启动只使用本地文件；业务后端、登录及管理平台仍须在内网可达。
+
+| 系统 | 运行包与要求 |
+| --- | --- |
+| Windows | 官方 Win32 Nginx，常见 x64 Windows 可通过兼容层运行；PowerShell 5.1+；无需 WSL。Windows ARM64、不同 Windows Server 版本须先实机验收 |
+| Linux AMD64/ARM64 | 自动按 `uname -m` 选择 Nginx 和随包 musl 运行库，无需系统 glibc 或 Nginx 安装包；需要 `sh`、`tar`、`sha256sum`、常见 coreutils/proc 工具以及 `curl` 或 `wget` |
+
+Linux 部署路径所在磁盘必须允许执行程序，目录须允许当前用户创建 `.native/` 和 `logs/`。建议以普通用户运行并使用大于 1024 的端口；以 root 启动时需有 `nobody` 用户，且该用户能读取页面和访问目录。运行库减少发行版依赖，但不保证兼容任意旧内核或其他 CPU 架构。已在 Windows 和 WSL Ubuntu AMD64 验证，ARM64 实机仍需验收。
+
+Windows Nginx 是控制台后台程序，官方说明其性能和扩展能力有限，不是 Windows 服务；高并发部署优先使用 Linux。两种平台的脚本均不自动安装系统服务或设置开机启动。系统重启后须重新执行启动命令；需要自启时由运维按实际路径、账号配置任务计划或 systemd，并确保不会重复启动。[Windows 官方说明](https://nginx.org/en/docs/windows.html)
+
+### 开发电脑：从源码生成原生交付包
+
+```sh
+node --version                  # Node.js 22+
+npm ci                          # 首次需联网或已验证完整的离线 npm 缓存
+npm run package:native          # 生产构建 + 原生离线压缩包
+# npm run package:native -- test # 测试环境
+# npm run build:native          # 只生成原生 dist，不压缩
+```
+
+输出 `artifacts/dashboard-native-production.tar.gz` 和同名 `.sha256`，完整复制给部署用户。`npm run package` 生成的完整包也包含原生入口，还附带 Docker 镜像；仅需无 Docker 方案时使用 `package:native` 可以减少交付体积。两类构建都会重建同一个 `dist/`，请勿并行执行。
+
+`.offline-images/`（Docker 镜像）和 `.offline-native/`（原生运行包）均已纳入普通 Git，随源码拉取，无需 Git LFS。正常 build/package 不调用 Docker、不下载运行包。只有维护者更新原生运行包时才执行 `npm run prepare:native`：该准备命令需要联网下载 Windows 包和许可证，并用 Docker 从已校验的镜像归档提取 Linux 程序与运行库。准备完成后，将 `.offline-native/` 的运行包、SHA256、manifest 和许可证一起提交。
+
+### Windows：解压、配置和运行
+
+在 PowerShell 中先校验并解压（示例目录可修改）：
+
+```powershell
+$expected = ((Get-Content .\dashboard-native-production.tar.gz.sha256 -Raw).Trim() -split '\s+')[0]
+if ((Get-FileHash .\dashboard-native-production.tar.gz -Algorithm SHA256).Hash -ne $expected) { throw '交付包校验失败' }
+New-Item -ItemType Directory -Force C:\Apps\dashboard
+tar -xzf .\dashboard-native-production.tar.gz -C C:\Apps\dashboard
+Set-Location C:\Apps\dashboard
+# 按下节修改 deploy/nginx.native.conf 后启动
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1
+```
+
+也可双击 `start-native.cmd`。状态、重载与停止：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action status
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action reload
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action stop
+```
+
+执行策略 Bypass 只作用于当前进程，不改变全局策略；组织策略禁止时应按组织规定处理。默认本机访问 `http://localhost:8082/`，其他电脑使用宿主机 IP。防火墙须允许该端口。含空格路径已验证；不要在运行期间移动整个目录。
+
+### Linux：解压、配置和运行
+
+```sh
+sha256sum -c dashboard-native-production.tar.gz.sha256
+mkdir -p "$HOME/dashboard"
+tar -xzf dashboard-native-production.tar.gz -C "$HOME/dashboard"
+cd "$HOME/dashboard"
+# 按下节修改 deploy/nginx.native.conf 后启动
+sh native.sh start
+sh native.sh status
+sh native.sh reload
+sh native.sh stop
+```
+
+默认访问 `http://服务器IP:8082/`。解压程序须保留归档中的执行权限；`Permission denied` 时检查目录权限、挂载是否为 noexec，以及安全策略。无需执行 `apt install nginx`、`yum install nginx` 或 `docker load`。
+
+### 后端、端口与文案
+
+两种平台统一修改 **`deploy/nginx.native.conf`**：
+
+```nginx
+upstream dashboard_backend {
+    server 127.0.0.1:8080 max_fails=1 fail_timeout=5s;
+}
+# server 块内：
+listen 8082;
+```
+
+原生模式中的 `127.0.0.1` 是运行 Nginx 的本机；远程后端填写实际内网 IP/域名及端口，不使用 Docker 专用的 `host.docker.internal`。将 `listen 8082;` 改为实际需要的端口后执行 reload；原生脚本没有 Docker 入口的 `-Port` 参数。保留 `pid`、日志相对路径和完整配置结构，脚本依靠它们管理当前实例。
+
+`config/dashboard-labels.json` 修改后刷新即可，无需重启；`VITE_` 环境配置及源码变更需要重新构建。后端代理使用 `/api/`，应按前文配置业务接口和登录。启动探活验证首页、`/health`、文案 JSON，不代替业务登录验收。
+
+### 目录、更新与排错
+
+```text
+交付目录/
+├── native.ps1 / start-native.cmd      Windows 入口
+├── native.sh                         Linux 入口
+├── index.html / assets/ / config/     前端文件
+├── deploy/nginx.native.conf           原生完整 Nginx 配置
+├── deploy/native.mime.types
+├── native-runtime/                   Windows/Linux 运行归档、校验、来源和许可证
+├── .native/                          首次启动自动解压，不要手工编辑
+└── logs/                             自动创建：日志、临时目录及 PID 文件
+```
+
+每次操作会校验运行归档；缺失或 SHA256 不匹配时拒绝执行。运行包、配置、日志不会通过默认 Web 配置公开。状态命令在未运行时返回非零退出码；重复 start 不会重复启动，修改配置后请明确执行 reload。
+
+更新前将新包解压到独立版本目录，保留旧目录，把现场后端和文案配置核对后迁入新版。先在**旧目录**执行 stop，再在新目录 start，避免端口冲突。回退时停止新版，然后在旧目录 start；不要复制旧版 `.native/`、PID 或日志到新版。升级窗口内会有短暂停机，不提供自动事务回滚。
+
+| 故障 | 处理 |
+| --- | --- |
+| 启动失败或端口占用 | 查看 `logs/native-error.log`，修改 listen 或停止占用端口的旧实例 |
+| `Native runtime checksum mismatch` | 重新获取完整交付包；不要修改校验值绕过 |
+| PID 属于其他进程 | 确认旧实例和 PID 状态，不要用全局 kill nginx 误杀其他服务 |
+| 页面可用，API 502/504 | 检查原生配置中的后端地址、监听端口、防火墙和域名解析 |
+| 页面可用，API 401/403 | 检查业务登录和权限 |
+| 系统重启后页面不可用 | 原生进程不是系统服务，重新 start 或检查运维配置的自启任务 |
+
+访问日志为 `logs/native-access.log`，错误日志为 `logs/native-error.log`。生产环境需安排日志轮转与磁盘清理；清理前确认进程状态，不删除正在使用的 PID 文件。

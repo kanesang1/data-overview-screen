@@ -6,6 +6,7 @@ import scenarioNodeBase from '@/assets/img/center/tree/three/scenario-node-base.
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
 import { dashboardLabels } from '@/config/dashboard-labels'
+import NodeDataTooltip from './NodeDataTooltip.vue'
 
 const props = defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
 
@@ -15,16 +16,6 @@ const getFoundationIconStyle = (index: number) => {
   const [width, height] = foundationIconSizes[index % foundationIconSizes.length]
   return { width: `${width / 1042 * 100}cqw`, height: `${height / 1042 * 100}cqw` }
 }
-
-type DimensionScoreKey = keyof NonNullable<TreeNode['dimensionScores']>
-
-const dimensionScoreFields: DimensionScoreKey[] = [
-  'waveformScore',
-  'targetScore',
-  'clutterScore',
-  'sceneScore',
-  'climateScore',
-]
 
 type FoundationArcLayout = {
   leftStart: number
@@ -168,13 +159,7 @@ const getFoundationArcStyle = (index: number, count: number) => {
       </span>
       <span class="node-label">{{ node.label }}</span>
       <span class="node-metric"><b>{{ node.value }}</b><small>{{ node.unit }}</small></span>
-      <span v-if="node.dimensionScores" class="dimension-tooltip" role="tooltip">
-        <strong>{{ node.label }}</strong>
-        <span v-for="field in dimensionScoreFields" :key="field" class="dimension-tooltip__row">
-          <span>{{ dashboardLabels.common.qualityDimensions.fieldLabels[field] }}</span>
-          <b>{{ node.dimensionScores[field] }}{{ dashboardLabels.common.qualityDimensions.fieldUnits[field] }}</b>
-        </span>
-      </span>
+      <NodeDataTooltip v-if="node.tooltip" :data="node.tooltip" />
     </button>
   </section>
 </template>
@@ -205,10 +190,5 @@ const getFoundationArcStyle = (index: number, count: number) => {
 .foundation-node.is-active .node-label { color: #fff; font-weight: 700; }
 .foundation-node.is-active .node-metric b { color: #95e5ff; }
 .foundation-node.is-active { z-index: 40; }
-.dimension-tooltip { position: absolute; z-index: 30; bottom: calc(100% + .7678cqw); left: 50%; display: none; width: max-content; min-width: 11.5163cqw; box-sizing: border-box; padding: .9597cqw 1.1516cqw; border: 1px solid #2c8fdb; border-radius: .3839cqw; color: #dff4ff; font-size: 1.5355cqw; font-weight: 400; line-height: 1.5; text-align: left; white-space: nowrap; background: rgba(5, 21, 45, .94); box-shadow: 0 .2879cqw .9597cqw rgba(0, 0, 0, .28); transform: translateX(-50%) rotate(calc(-1 * var(--foundation-rotation, 0deg))); pointer-events: none; }
-.dimension-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; width: .5758cqw; height: .5758cqw; border-right: 1px solid #2c8fdb; border-bottom: 1px solid #2c8fdb; background: rgba(5, 21, 45, .94); transform: translate(-50%, -50%) rotate(45deg); }
-.foundation-node.is-active .dimension-tooltip { display: block; }
-.dimension-tooltip > strong { display: block; margin-bottom: .4798cqw; color: #fff; font-size: 1.7274cqw; font-weight: 600; text-align: left; }
-.dimension-tooltip__row { display: flex; align-items: center; justify-content: flex-start; gap: .7678cqw; text-align: left; }
-.dimension-tooltip__row b { color: #dff4ff; font-weight: 600; }
+.foundation-node.is-active :deep(.node-data-tooltip) { display: block; transform: translateX(-50%) rotate(calc(-1 * var(--foundation-rotation, 0deg))); }
 </style>

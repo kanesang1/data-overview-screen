@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CenterStage from '@/components/CenterStage.vue'
-import LeftSidebar from '@/components/LeftSidebar.vue'
-import RightSidebar from '@/components/RightSidebar.vue'
+import LeftSidebar from '@/components/left/LeftSidebar.vue'
+import RightSidebar from '@/components/right/RightSidebar.vue'
 import background from '@/assets/img/bg/dashboard-background.png'
 import headerBg from '@/assets/img/bg/dashboard-header.png'
 import leftFrame from '@/assets/img/bg/dashboard-frame-left.png'

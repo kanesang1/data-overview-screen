@@ -5,18 +5,9 @@ import applicationNodeDefault from '@/assets/img/center/tree/two/application-nod
 import type { TreeNode } from '../types'
 import type { ArcLayout } from './arc-layout'
 import { dashboardLabels } from '@/config/dashboard-labels'
+import NodeDataTooltip from './NodeDataTooltip.vue'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
-
-type DimensionScoreKey = keyof NonNullable<TreeNode['dimensionScores']>
-
-const dimensionScoreFields: DimensionScoreKey[] = [
-  'waveformScore',
-  'targetScore',
-  'clutterScore',
-  'sceneScore',
-  'climateScore',
-]
 
 const applicationArc: ArcLayout = { leftStart: 14.5, leftEnd: 74, edgeTop: 23, centerTop: 31.5 }
 const layerElement = ref<HTMLElement | null>(null)
@@ -210,13 +201,7 @@ watch(() => props.nodes.length, (nodeCount) => {
         <img class="application-icon" :src="selectedId === node.id ? applicationNodeActive : applicationNodeDefault" alt="" />
       </span>
       <span class="node-label">{{ node.label }}</span>
-      <span v-if="node.dimensionScores" class="dimension-tooltip" role="tooltip">
-        <strong>{{ node.label }}</strong>
-        <span v-for="field in dimensionScoreFields" :key="field" class="dimension-tooltip__row">
-          <span>{{ dashboardLabels.common.qualityDimensions.fieldLabels[field] }}</span>
-          <b>{{ node.dimensionScores[field] }}{{ dashboardLabels.common.qualityDimensions.fieldUnits[field] }}</b>
-        </span>
-      </span>
+      <NodeDataTooltip v-if="node.tooltip" :data="node.tooltip" />
     </button>
   </section>
 </template>
@@ -231,11 +216,6 @@ watch(() => props.nodes.length, (nodeCount) => {
 .application-node.is-back-track .application-icon { filter: brightness(.78) saturate(.72); }
 .application-node.is-active .application-visual { filter: drop-shadow(0 0 .7678cqw #63dcff); }
 .application-node.is-active .node-label { color: #fff; font-weight: 700; }
-.dimension-tooltip { position: absolute; z-index: 30; bottom: calc(100% + .7678cqw); left: 50%; display: none; width: max-content; min-width: 11.5163cqw; box-sizing: border-box; padding: .9597cqw 1.1516cqw; border: 1px solid #2c8fdb; border-radius: .3839cqw; color: #dff4ff; font-size: 1.5355cqw; font-weight: 400; line-height: 1.5; text-align: left; white-space: nowrap; background: rgba(5, 21, 45, .94); box-shadow: 0 .2879cqw .9597cqw rgba(0, 0, 0, .28); transform: translateX(-50%); pointer-events: none; }
-.dimension-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; width: .5758cqw; height: .5758cqw; border-right: 1px solid #2c8fdb; border-bottom: 1px solid #2c8fdb; background: rgba(5, 21, 45, .94); transform: translate(-50%, -50%) rotate(45deg); }
-.application-node.is-active.can-show-tooltip .dimension-tooltip { display: block; }
-.dimension-tooltip > strong { display: block; margin-bottom: .4798cqw; color: #fff; font-size: 1.7274cqw; font-weight: 600; text-align: left; }
-.dimension-tooltip__row { display: flex; align-items: center; justify-content: flex-start; gap: .7678cqw; text-align: left; }
-.dimension-tooltip__row b { color: #dff4ff; font-weight: 600; }
+.application-node.is-active.can-show-tooltip :deep(.node-data-tooltip) { display: block; }
 @media (prefers-reduced-motion: reduce) { .application-node { transition: none; } }
 </style>

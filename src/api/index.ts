@@ -20,3 +20,6 @@ export type {
   DataServiceItem,
   DataSourceData,
 } from './dashboard'
+
+export { getDatasetAssetUsageSummary } from './asset-usage'
+export type { DatasetAssetUsageSummary } from './asset-usage'

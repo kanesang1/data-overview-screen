@@ -11,6 +11,7 @@ for (const name of ['native', 'offline', 'windows', 'dev', 'test']) {
   const config = await readFile(`deploy/nginx.${name}.conf`, 'utf8')
   assert.match(config, /location \/api\/\s*\{/)
   assert.match(config, /proxy_set_header Authorization \$http_authorization;/)
+  assert.doesNotMatch(config, /proxy_set_header Host \$proxy_host;/)
   assert.doesNotMatch(config, /8\.148\.14\.229/)
 }
 const calls = []
@@ -31,7 +32,7 @@ await mkdir(directory + '/logs', { recursive: true })
 await copyFile('deploy/native.mime.types', directory + '/native.mime.types')
 const config = (await readFile('deploy/nginx.native.conf', 'utf8'))
   .replace('127.0.0.1:8080', '127.0.0.1:' + backend.address().port)
-  .replace('listen 8082;', 'listen 127.0.0.1:' + port + ';')
+  .replace('listen 80;', 'listen 127.0.0.1:' + port + ';')
 await writeFile(directory + '/nginx.conf', config)
 const args = ['-p', directory.replaceAll('\\', '/') + '/', '-c', 'nginx.conf']
 const run = extra => {

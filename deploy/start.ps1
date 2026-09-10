@@ -1,6 +1,6 @@
 param(
     [ValidateSet('auto', 'offline', 'online')][string]$Mode = 'auto',
-    [ValidateRange(1, 65535)][int]$Port = 8082,
+    [ValidateRange(1, 65535)][int]$Port = 80,
     [string]$Name = 'data-overview-offline'
 )
 $ErrorActionPreference = 'Stop'

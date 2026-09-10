@@ -9,10 +9,6 @@ defineProps<{
 <template>
   <span class="node-data-tooltip" role="tooltip">
     <strong class="node-data-tooltip__title">{{ data.projectName }}</strong>
-    <span class="node-data-tooltip__row">
-      <span class="node-data-tooltip__key">项目数量：</span>
-      <span class="node-data-tooltip__value">{{ data.projectCount }}</span>
-    </span>
     <span v-for="(item, index) in data.items" :key="`${item.key}-${index}`" class="node-data-tooltip__row">
       <span class="node-data-tooltip__key">{{ item.key }}：</span>
       <span class="node-data-tooltip__value">{{ item.value }}</span>

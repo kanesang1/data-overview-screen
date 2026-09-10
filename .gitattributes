@@ -3,3 +3,6 @@
 *.cmd text eol=crlf
 .offline-images/*.tar binary
 .offline-images/*.sha256 text eol=lf
+.offline-native/*.zip binary
+.offline-native/*.gz binary
+.offline-native/*.sha256 text eol=lf

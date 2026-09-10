@@ -22,3 +22,4 @@ for (const name of ['deploy.sh', 'start.sh', 'deploy.ps1', 'start.ps1', 'start.c
 await copyFile(resolve(root, 'deploy/nginx.offline.conf'), resolve(dist, 'deploy/nginx.offline.conf'))
 await copyFile(resolve(root, 'deploy/nginx.windows.conf'), resolve(dist, 'deploy/nginx.windows.conf'))
 console.log('Deployment dist ready: Linux/Windows scripts, amd64/arm64 offline images, checksums, documentation and website included.')
+await import('./prepare-native-deploy.mjs')

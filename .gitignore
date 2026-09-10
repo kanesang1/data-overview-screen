@@ -14,3 +14,4 @@ vite.config.d.ts
 
 .offline-images/*.tmp
 artifacts/
+.offline-native/*.tmp

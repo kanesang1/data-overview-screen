@@ -1,0 +1,47 @@
+{
+  "runtimes": [
+    {
+      "file": "nginx-windows.zip",
+      "sha256": "aad7bf75d669ece7671688bfdf35f1093d6a30d2e62469405f4d55d8d82d5fd3",
+      "platform": "windows-x86",
+      "version": "1.28.3",
+      "source": "https://nginx.org/download/nginx-1.28.3.zip"
+    },
+    {
+      "file": "nginx-linux-amd64.tar.gz",
+      "sha256": "6ee92f8ef97031ddc90b14937efab46f1a202d1fe9287e2bc81e3c1751d155db",
+      "platform": "linux/amd64",
+      "imageId": "sha256:6769dc3a703c719c1d2756bda113659be28ae16cf0da58dd5fd823d6b9a050ea",
+      "source": "public.ecr.aws/docker/library/nginx:1.27-alpine",
+      "packages": [
+        "libcrypto3-3.3.3-r0",
+        "libssl3-3.3.3-r0",
+        "musl-1.2.5-r9",
+        "nginx-1.27.5-r1",
+        "pcre2-10.43-r0",
+        "zlib-1.3.1-r2"
+      ]
+    },
+    {
+      "file": "nginx-linux-arm64.tar.gz",
+      "sha256": "eeec8ea20ce9a10db9852e78c78243a0f6d4175c9b36b0dd8ac9c8dd1b58aef2",
+      "platform": "linux/arm64",
+      "imageId": "sha256:96868d9fa38f469a86d2f25787e43ee9ad330339d30be260aa9f5a338bb03751",
+      "source": "public.ecr.aws/docker/library/nginx:1.27-alpine",
+      "packages": [
+        "libcrypto3-3.3.3-r0",
+        "libssl3-3.3.3-r0",
+        "musl-1.2.5-r9",
+        "nginx-1.27.5-r1",
+        "pcre2-10.43-r0",
+        "zlib-1.3.1-r2"
+      ]
+    }
+  ],
+  "licenseSources": {
+    "musl-COPYRIGHT": "https://git.musl-libc.org/cgit/musl/plain/COPYRIGHT",
+    "pcre2-LICENCE": "https://raw.githubusercontent.com/PCRE2Project/pcre2/pcre2-10.43/LICENCE",
+    "openssl-LICENSE": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.3.3/LICENSE.txt",
+    "zlib-LICENSE": "https://raw.githubusercontent.com/madler/zlib/v1.3.1/LICENSE"
+  }
+}

@@ -12,6 +12,9 @@
     "preview": "vite preview --host 0.0.0.0",
     "type-check": "vue-tsc -b --force",
     "prepare:images": "node scripts/prepare-images.mjs",
+    "prepare:native": "node scripts/prepare-native.mjs",
+    "build:native": "node scripts/build-native.mjs",
+    "package:native": "node scripts/package.mjs --native",
     "package": "node scripts/package.mjs",
     "build:web": "node scripts/build.mjs production --web-only"
   },

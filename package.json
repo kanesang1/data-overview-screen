@@ -12,6 +12,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "type-check": "vue-tsc -b --force",
     "prepare:images": "node scripts/prepare-images.mjs",
+    "package": "node scripts/package.mjs",
     "build:web": "node scripts/build.mjs production --web-only"
   },
   "dependencies": {

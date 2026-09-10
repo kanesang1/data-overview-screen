@@ -19,6 +19,14 @@ export type TreeNode = {
       value: string | number
     }>
   }
+  gallery?: {
+    title: string
+    items: Array<{
+      src: string
+      description: string
+      layout: 'square' | 'wide'
+    }>
+  }
   dimensionScores?: {
     waveformScore: number
     targetScore: number

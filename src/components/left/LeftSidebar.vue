@@ -2,8 +2,8 @@
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
 import { computed, onMounted, ref, shallowRef } from 'vue'
-import { getDataAssetSource, getDataEvaluateDetail } from '@/api'
-import type { DataEvaluateDetailItem, DataSourceData } from '@/api'
+import { getDataAssetSource, getDataOverview } from '@/api'
+import type { DataOverviewData, DataSourceData } from '@/api'
 import { dashboardLabels } from '@/config/dashboard-labels'
 import EChart from '@/components/EChart.vue'
 import PanelSection from '@/components/PanelSection.vue'
@@ -12,7 +12,7 @@ import sourceIcon from '@/assets/img/left/panel-icon-source.svg'
 import qualityDimensions from '@/assets/img/left/quality-dimensions.png'
 
 const labels = { quality: dashboardLabels.leftTop.title, source: dashboardLabels.leftBottom.title }
-const qualityDetail = ref<DataEvaluateDetailItem>()
+const qualityDetail = ref<DataOverviewData>()
 const dimensions = computed(() => qualityDetail.value ? [
   { name: dashboardLabels.common.qualityDimensions.fieldLabels.waveformScore, value: qualityDetail.value.waveformScore, field: 'waveformScore' as const },
   { name: dashboardLabels.common.qualityDimensions.fieldLabels.targetScore, value: qualityDetail.value.targetScore, field: 'targetScore' as const },
@@ -47,9 +47,8 @@ const toggleSource = (index: number) => {
 }
 
 const loadQualityDetail = async () => {
-  // 业务参数放在使用接口的 Vue 模块中，后续在这里调整。
-  const response = await getDataEvaluateDetail({ datasetType: 0 })
-  if (response.code === 200) qualityDetail.value = response.data?.[0]
+  const response = await getDataOverview()
+  if (response.code === 200) qualityDetail.value = response.data
 }
 
 const loadAssetSource = async () => {
@@ -70,7 +69,7 @@ onMounted(() => {
 <template>
   <aside class="left-sidebar">
     <PanelSection :title="labels.quality" :icon="qualityIcon">
-      <div class="quality-visual"><img class="quality-dimensions" :src="qualityDimensions" alt="" /><div class="quality-summary"><strong>{{ dashboardLabels.leftTop.dimensionTitle }}</strong><span><b>{{ qualityDetail?.datasetscore ?? qualityDetail?.datasetScore ?? '--' }}</b>{{ dashboardLabels.leftTop.dimensionUnit }}</span></div><div class="dimension-list"><div v-for="item in dimensions" :key="item.name"><span>{{ item.name }}</span><b>{{ item.value }}<small>{{ dashboardLabels.common.qualityDimensions.fieldUnits[item.field] }}</small></b></div></div></div>
+      <div class="quality-visual"><img class="quality-dimensions" :src="qualityDimensions" alt="" /><div class="quality-summary"><strong>{{ dashboardLabels.leftTop.dimensionTitle }}</strong><span><b>{{ qualityDetail?.datasetScore ?? '--' }}</b>{{ dashboardLabels.leftTop.dimensionUnit }}</span></div><div class="dimension-list"><div v-for="item in dimensions" :key="item.name"><span>{{ item.name }}</span><b>{{ item.value }}<small>{{ dashboardLabels.common.qualityDimensions.fieldUnits[item.field] }}</small></b></div></div></div>
     </PanelSection>
     <PanelSection class="panel-section--secondary" :title="labels.source" :icon="sourceIcon">
       <div class="source-chart"><EChart ref="sourceChart" :option="sourceOption" /></div>

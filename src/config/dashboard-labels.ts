@@ -52,6 +52,13 @@ export interface DashboardLabels {
       title: string
       fieldLabels: Record<'serviceDesc' | 'serviceCnt', string>
       fieldUnits: Record<'serviceCnt', string>
+      imageGalleries: Array<{
+        items: Array<{
+          src: string
+          description: string
+          layout: 'square' | 'wide'
+        }>
+      }>
     }
     application: {
       title: string
@@ -107,6 +114,7 @@ const emptyLabels: DashboardLabels = {
       title: '',
       fieldLabels: { serviceDesc: '', serviceCnt: '' },
       fieldUnits: { serviceCnt: '' },
+      imageGalleries: [],
     },
     application: {
       title: '',
@@ -125,6 +133,10 @@ export const dashboardLabels = reactive<DashboardLabels>(emptyLabels)
 
 function mergeLabels(target: Record<string, unknown>, source: Record<string, unknown>) {
   Object.entries(source).forEach(([key, value]) => {
+    if (Array.isArray(value) && key in target) {
+      target[key] = value
+      return
+    }
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       const targetValue = target[key]
       if (targetValue && typeof targetValue === 'object' && !Array.isArray(targetValue)) {

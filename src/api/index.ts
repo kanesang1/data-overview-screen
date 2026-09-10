@@ -6,6 +6,7 @@ export {
   getDataAssetSource,
   getDataEvaluateDetail,
   getDataOverview,
+  getDatasetPreview,
   getDataServices,
   getDataSource,
 } from './dashboard'
@@ -17,6 +18,10 @@ export type {
   DataEvaluateDetailItem,
   DataEvaluateDetailParams,
   DataOverviewData,
+  DatasetPreviewItem,
+  DatasetPreviewKeyItem,
+  DatasetPreviewParams,
+  DatasetPreviewType,
   DataServiceItem,
   DataSourceData,
 } from './dashboard'

@@ -1,6 +1,6 @@
-<!-- 基础数据层：展示应用场景与基础数据节点，并管理弧形排布、轮播选中和详情提示。 -->
+<!-- 基础数据层：展示应用场景与基础数据节点，并管理弧形排布和详情提示。 -->
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ref } from 'vue'
 import nodeBaseActive from '@/assets/img/center/tree/node-base-active.png'
 import nodeBaseDefault from '@/assets/img/center/tree/node-base-default.png'
 import scenarioNodeBase from '@/assets/img/center/tree/three/scenario-node-base.png'
@@ -40,39 +40,6 @@ const foundationArc: FoundationArcLayout = {
 }
 const selectedScenarioId = ref<number | null>(null)
 const selectedFoundationId = ref<number | null>(null)
-const carouselInterval = 2500
-let foundationCarouselTimer: ReturnType<typeof setInterval> | undefined
-
-const selectNextFoundation = () => {
-  if (props.foundationNodes.length === 0) return
-  const currentIndex = props.foundationNodes.findIndex(node => node.id === selectedFoundationId.value)
-  selectedFoundationId.value = props.foundationNodes[(currentIndex + 1) % props.foundationNodes.length].id
-}
-
-const stopFoundationCarousel = () => {
-  if (foundationCarouselTimer) clearInterval(foundationCarouselTimer)
-  foundationCarouselTimer = undefined
-}
-
-const startFoundationCarousel = () => {
-  stopFoundationCarousel()
-  foundationCarouselTimer = setInterval(selectNextFoundation, carouselInterval)
-}
-
-const selectFoundation = (id: number) => {
-  stopFoundationCarousel()
-  selectedFoundationId.value = id
-}
-
-onMounted(() => {
-  selectNextFoundation()
-  startFoundationCarousel()
-})
-onBeforeUnmount(stopFoundationCarousel)
-
-watch(() => props.foundationNodes, (nodes) => {
-  if (!nodes.some(node => node.id === selectedFoundationId.value)) selectNextFoundation()
-})
 
 const getFoundationTop = (progress: number) => {
   const distanceFromCenter = Math.abs(progress - 0.5) * 2
@@ -146,14 +113,15 @@ const getFoundationArcStyle = (index: number, count: number) => {
       v-for="(node, index) in foundationNodes"
       :key="`foundation-${node.id}`"
       class="tree-node foundation-node"
-      :class="{ 'is-active': selectedFoundationId === node.id }"
+      :class="{ 'is-active': selectedFoundationId === node.id, 'has-tooltip': selectedFoundationId === node.id }"
       :style="getFoundationArcStyle(index, foundationNodes.length)"
       type="button"
       :aria-pressed="selectedFoundationId === node.id"
-      @mouseenter="selectFoundation(node.id)"
-      @mouseleave="startFoundationCarousel"
-      @focus="selectFoundation(node.id)"
-      @blur="startFoundationCarousel"
+      @mouseenter="selectedFoundationId = node.id"
+      @mouseleave="selectedFoundationId = null"
+      @focus="selectedFoundationId = node.id"
+      @blur="selectedFoundationId = null"
+      @click="selectedFoundationId = node.id"
     >
       <span class="foundation-visual">
         <img class="foundation-base" :src="nodeBaseDefault" alt="" />
@@ -194,5 +162,5 @@ const getFoundationArcStyle = (index: number, count: number) => {
 .foundation-node.is-active .node-label { color: #fff; font-weight: 700; }
 .foundation-node.is-active .node-metric b { color: #95e5ff; }
 .foundation-node.is-active { z-index: 40; }
-.foundation-node.is-active :deep(.node-data-tooltip) { display: block; transform: translateX(-50%) rotate(calc(-1 * var(--foundation-rotation, 0deg))); }
+.foundation-node.has-tooltip :deep(.node-data-tooltip) { display: block; transform: translateX(-50%) rotate(calc(-1 * var(--foundation-rotation, 0deg))); }
 </style>

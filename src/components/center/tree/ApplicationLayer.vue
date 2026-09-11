@@ -217,7 +217,6 @@ watch(() => props.nodes.length, (nodeCount) => {
 .application-node.is-back-track .application-icon { filter: brightness(.78) saturate(.72); }
 .application-node.is-active .application-visual { filter: drop-shadow(0 0 .7678cqw #63dcff); }
 .application-node.is-active .node-label { color: #fff; font-weight: 700; }
-.application-node :deep(.node-data-tooltip) { width: max-content; max-width: 22cqw; }
 .application-node.is-active.can-show-tooltip :deep(.node-data-tooltip) { display: block; }
 @media (prefers-reduced-motion: reduce) { .application-node { transition: none; } }
 </style>

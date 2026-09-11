@@ -24,7 +24,8 @@ defineProps<{
   bottom: calc(100% + .7678cqw);
   left: 50%;
   display: none;
-  width: 30.3263cqw;
+  width: max-content;
+  max-width: 22cqw;
   height: auto;
   box-sizing: border-box;
   padding: 1.5355cqw;

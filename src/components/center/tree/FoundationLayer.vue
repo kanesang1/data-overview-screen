@@ -1,3 +1,4 @@
+<!-- 基础数据层：展示应用场景与基础数据节点，并管理弧形排布、轮播选中和详情提示。 -->
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import nodeBaseActive from '@/assets/img/center/tree/node-base-active.png'
@@ -5,15 +6,17 @@ import nodeBaseDefault from '@/assets/img/center/tree/node-base-default.png'
 import scenarioNodeBase from '@/assets/img/center/tree/three/scenario-node-base.png'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
+import { getFoundationIconIndex } from './foundation-icon-order'
 import { dashboardLabels } from '@/config/dashboard-labels'
-import NodeDataTooltip from './NodeDataTooltip.vue'
+import NodeDataTooltip from './components/NodeDataTooltip.vue'
 
 const props = defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
 
-// SVG export sizes include shadow padding; preserve their native scale at 1920 × 1080.
-const foundationIconSizes = [[53, 48], [45, 48], [49, 48], [48, 46], [54, 54], [46, 46], [42, 48]]
+// 可见图形的设计尺寸为 35×30 等；这里使用包含投影留白的 SVG 画布尺寸，避免图形被二次缩小。
+const foundationIconRenderSizes = [[53, 48], [45, 48], [49, 48], [48, 46], [54, 54], [46, 46], [42, 48], [42, 42], [44, 44]]
 const getFoundationIconStyle = (index: number) => {
-  const [width, height] = foundationIconSizes[index % foundationIconSizes.length]
+  const iconIndex = getFoundationIconIndex(index, props.foundationNodes.length)
+  const [width, height] = foundationIconRenderSizes[iconIndex % foundationIconRenderSizes.length]
   return { width: `${width / 1042 * 100}cqw`, height: `${height / 1042 * 100}cqw` }
 }
 
@@ -30,8 +33,8 @@ const scenarioArc: ArcLayout = { leftStart: 16, leftEnd: 72, edgeTop: 40.3, cent
 const foundationArc: FoundationArcLayout = {
   leftStart: 0,
   leftEnd: 90,
-  edgeTop: 36.5,
-  boundaryCenterTop: 54.5,
+  edgeTop: 38.5,
+  boundaryCenterTop: 55.5,
   centerLift: 1.8,
   centerLiftRadius: 0.5,
 }
@@ -177,14 +180,15 @@ const getFoundationArcStyle = (index: number, count: number) => {
 .scenario-node.is-active .node-label { color: #fff; font-weight: 700; }
 .scenario-node:focus-visible .node-label { text-decoration: underline; text-decoration-color: rgba(149,229,255,.8); text-underline-offset: .2879cqw; }
 .foundation-node { top: 48.5%; width: 10.5%; transform: rotate(var(--foundation-rotation, 0deg)); transform-origin: 50% 50%; }
-.foundation-visual { position: relative; display: block; width: 9.405cqw; height: 7.8695cqw; margin: 0 auto; transition: filter .25s ease, transform .25s ease; }
-.foundation-base, .foundation-glow { position: absolute; left: 50%; bottom: 0; width: 9.405cqw; height: 7.8695cqw; transform: translateX(-50%); object-fit: contain; }
-.foundation-glow { z-index: 1; pointer-events: none; }
+.foundation-visual { position: relative; display: block; width: 9.405cqw; height: 7.8695cqw; margin: 0 auto; overflow: visible; transition: filter .25s ease, transform .25s ease; }
+.foundation-base, .foundation-glow { position: absolute; left: 50%; transform: translateX(-50%); object-fit: contain; }
+.foundation-base { bottom: 0; width: 9.405cqw; height: 7.8695cqw; opacity: .6; }
+.foundation-glow { z-index: 1; bottom: .096cqw; width: 13.0518cqw; height: 11.8042cqw; pointer-events: none; }
 .foundation-icon { position: absolute; z-index: 2; left: 50%; bottom: 1.1516cqw; transform: translateX(-50%); object-fit: contain; }
 .foundation-node.is-active .foundation-visual { filter: brightness(1.18) drop-shadow(0 0 .8637cqw rgba(81,218,255,.8)); }
 .foundation-node.is-active .foundation-icon { filter: brightness(1.5); }
 .foundation-node .node-label { margin-top: -.3839cqw; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1; }
-.foundation-node .node-metric { margin-top: -.1919cqw; }
+.foundation-node .node-metric { margin-top: -.3919cqw; }
 .foundation-node .node-metric b { color: rgba(149,229,255,.80); font-size: 1.5355cqw; font-weight: 700; }
 .foundation-node .node-metric small { color: rgba(255,255,255,.60); font-size: 1.1516cqw; font-weight: 400; }
 .foundation-node.is-active .node-label { color: #fff; font-weight: 700; }

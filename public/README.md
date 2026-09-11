@@ -1,172 +1,308 @@
-# 数据总览大屏：部署与维护说明
+# 数据总览大屏：构建、打包与部署手册
 
-本文面向负责部署、接口联调和维护的后端人员。拿到打包文件后，服务器无需安装 Node.js，也无需运行 npm 命令。
+本文只描述当前实际使用的服务器环境：
 
-## 1. 交付文件
+| 服务器环境 | 部署方式 | 前端端口 | 启动命令 |
+| --- | --- | --- | --- |
+| Linux，有 Docker、有网络 | Docker 自动模式 | 80 | `sh start.sh` |
+| Linux，有 Docker、无网络 | Docker 离线模式 | 80 | `sh start.sh --mode offline` |
+| Windows，无 Docker | 随包原生 Nginx | 80 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1` |
 
-大屏由 Nginx 提供静态页面访问，浏览器对 `/api/bi/` 的请求由 Nginx 转发给后端。
+交付包统一在开发/维护电脑上构建。目标服务器只校验、解压、配置和启动，**服务器上不执行 `npm ci`、`npm run build` 或 `npm run package`**。
 
-前端交付的 `dist` 是构建完成的发布目录，请将其中全部内容上传到服务器，不要只上传 `index.html`。本文以 Linux 服务器的 `/opt/dashboard` 为部署目录。
+## 1. 开发电脑：从源码生成交付包
+
+### 1.1 第一次拿到源码
+
+需要 Node.js 22 或更高版本。首次安装依赖需要网络或完整的 npm 缓存。
+
+```sh
+git clone --branch off git@172.16.20.107:pku-cs/data-overview-screnn.git
+cd data-overview-screnn
+node --version
+npm ci
+```
+
+Windows 使用 nvm 时：
+
+```powershell
+nvm install 22.20.0
+nvm use 22.20.0
+node --version
+npm ci
+```
+
+仓库必须完整包含 `.offline-images/` 和 `.offline-native/`。正常修改页面和发版时不需要重新下载 Docker 镜像或 Nginx。
+
+### 1.2 构建模式
+
+构建模式决定前端使用哪套 `.env`，与服务器有没有网络无关。
+
+| 配置 | 生成可直接上传的完整 `dist` | 生成压缩包和 SHA256 |
+| --- | --- | --- |
+| development（当前使用） | `npm run build:dev` | `npm run package -- development` |
+| production | `npm run build` | `npm run package` |
+| test | `npm run build:test` | `npm run package -- test` |
+
+当前使用 development 配置，推荐执行：
+
+```sh
+npm run type-check
+npm run package -- development
+```
+
+输出：
 
 ```text
-/opt/dashboard/
-├── README.md                       本说明
-├── index.html                      页面入口
-├── assets/                         页面程序、样式和图片
-├── config/dashboard-labels.json    界面文案配置
-├── deploy.sh                       自动部署脚本
-└── deploy/
-    ├── docker-compose.yml          容器配置
-    ├── nginx.dev.conf              关闭静态资源缓存
-    └── nginx.test.conf             部分静态资源缓存 7 天
+artifacts/dashboard-development.tar.gz
+artifacts/dashboard-development.tar.gz.sha256
 ```
 
-其他图片目录也需要一起上传。
+继续执行 `npm run build:dev` 也可以，生成的完整 `dist/` 可直接上传。必须上传 `dist` 内全部内容，不能只上传 `index.html` 和 `assets/`。
 
-## 2. 首次部署
+`npm run package -- development` 会重新执行 development 构建，再将完整 `dist` 压缩并生成 SHA256；它和 `npm run build:dev` 使用同一套前端配置，不会自动切换成 production。
 
-服务器需安装 Docker、Docker Compose V2 和 curl，启动 Docker 服务，并能拉取 `nginx:1.27-alpine` 镜像。确认对外端口未被占用，防火墙和安全组已放行。
+一个完整交付包同时包含：
 
-```bash
-# 以下命令在 Linux 服务器执行
- docker --version
- docker compose version
- curl --version
- mkdir -p /opt/dashboard
+- 前端页面、静态资源和业务文案；
+- Linux Docker 在线/离线启动脚本；
+- Linux AMD64、ARM64 离线 Nginx 镜像；
+- Windows 原生 Nginx 运行包和启动脚本；
+- 本部署手册。
+
+所有 `VITE_` 配置都可能进入浏览器产物，不能写服务端密钥。`API_PROXY_TARGET` 仅用于本地 Vite 调试；部署后的后端地址由 Nginx 配置决定。
+
+## 2. Linux 服务器：Docker 部署
+
+### 2.1 检查服务器
+
+Linux 服务器需要本机 Docker Engine、`sh`、`tar` 和 `sha256sum`。后端默认在同机 `127.0.0.1:8080`，前端使用 80 端口。
+
+```sh
+docker info
+uname -m
+ss -lntp | grep ':80 ' || echo '80 port is free'
+docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}'
 ```
 
-上传发布文件后，确认 `/opt/dashboard/index.html` 存在，再执行：
+### 2.2 上传、校验和解压
 
-```bash
-cd /opt/dashboard
-bash deploy.sh
+把 `dashboard-development.tar.gz` 和 `.sha256` 一起上传，例如放到 `/opt/releases/`，然后执行：
+
+```sh
+cd /opt/releases
+sha256sum -c dashboard-development.tar.gz.sha256
+mkdir -p /opt/dashboard-new
+tar -xzf dashboard-development.tar.gz -C /opt/dashboard-new
+cd /opt/dashboard-new
+ls -l start.sh deploy/nginx.offline.conf index.html
 ```
 
-默认对外端口为 `80`，使用 `nginx.dev.conf`。浏览器访问 `http://服务器IP/`。
+如果上传的是 `dist` 目录，确保 `/opt/dashboard/` 下直接存在 `start.sh`、`index.html`、`deploy/`、`images/` 和 `native-runtime/`，不要多套一层 `dist`。
 
-如需改为 `8082` 端口并使用测试环境的 Nginx 配置：
+### 2.3 配置后端
 
-```bash
-cd /opt/dashboard
-WEB_PORT=8082 NGINX_ENV=test bash deploy.sh
+Linux Docker 使用：
+
+```text
+deploy/nginx.offline.conf
 ```
 
-浏览器访问 `http://服务器IP:8082/`。这些变量只对本次命令生效，后续部署需要再次传入相同值。`NGINX_ENV` 只选择 Nginx 配置，不会修改已打包进页面的前端环境参数。
-
-当前容器名固定为 `data-overview-dev`，选择 test 时也不变。这套配置用于单实例部署，不能直接用它同时启动两套环境。
-
-脚本会检查文件、拉取镜像、更新容器、等待健康检查，并检查页面、文案文件和 `/api/bi/data-source` 接口。失败时输出最近的容器日志。最后一步接口检查不携带登录凭证，如果接口要求鉴权而返回 401/403，脚本也会报失败，应结合接口响应判断原因。
-
-## 3. 修改后端接口地址
-
-默认请求路径：浏览器 → 大屏 `/api/bi/xxx` → Docker 宿主机的 `8080/api/bi/xxx`。
-
-当前启用的 `deploy/nginx.dev.conf` 或 `deploy/nginx.test.conf` 中有：
+默认配置：
 
 ```nginx
-proxy_pass http://host.docker.internal:8080/api/bi/;
-```
+upstream dashboard_backend {
+    server 127.0.0.1:8080 max_fails=1 fail_timeout=5s;
+}
 
-`host.docker.internal` 在本 Compose 配置中指向宿主机。后端需允许来自容器的连接，仅监听宿主机 `127.0.0.1` 可能导致容器无法访问。
-
-如果后端在其他服务器或端口，修改主机和端口，保留接口路径及末尾斜杠。例如：
-
-```nginx
-proxy_pass http://192.168.1.10:8080/api/bi/;
-```
-
-修改后，使用原来的端口和环境重新执行部署命令。
-
-## 4. 修改界面标题、字段名称和单位
-
-在服务器编辑 `/opt/dashboard/config/dashboard-labels.json`。例如修改页面标题时，找到下面这一段，只修改 `title` 的值：
-
-```json
-"pageHeader": {
-  "title": "业务数据总览",
-  "platform": "管理平台"
+server {
+    listen 80;
 }
 ```
 
-这是局部片段，不要用它替换整个文件。保存后刷新浏览器即可，无需打包或重启容器。
+后端也在本机且端口是 8080 时不需要修改。后端地址不同时，只修改 upstream 的 `server`，保留 `listen 80;`。
 
-| 配置位置 | 对应内容 |
-| --- | --- |
-| `pageHeader` | 页面标题、管理平台按钮文字 |
-| `leftTop` / `leftBottom` | 左上 / 左下模块 |
-| `rightTop` / `rightBottom` | 右上 / 右下模块 |
-| `centerOverview` / `centerTree` | 中间概览 / 树形展示模块 |
-| `common` | 共用字段名称和单位 |
+### 2.4 停止旧前端
 
-修改前备份原文件。只修改显示值，保留英文键名和层级。JSON 必须使用英文双引号，不能写注释，最后一项后不能多加逗号。此文件不修改接口数据，修改单位文字也不会自动换算数值。显示异常时恢复备份后刷新。
+先确认 80 端口占用者：
 
-现场修改后，请同步回源码的 `public/config/dashboard-labels.json`，避免下次发布覆盖。
+```sh
+ss -lntp | grep ':80 '
+docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Ports}}\t{{.Status}}'
+```
 
-## 5. 管理平台返回地址
+现场旧前端容器为 `data-overview-dev` 时：
 
-右上角“管理平台”按钮优先读取页面地址的 `returnUrl` 参数，并在当前标签页跳转。管理端生成链接时，对返回地址进行 URL 编码，例如：
+```sh
+docker stop data-overview-dev
+ss -lntp | grep ':80 ' || echo '80 port is free'
+```
+
+不要停止 `data-resource-repo-backend`，它是 8080 端口的业务后端。新版验证成功前可保留已经停止的旧前端容器，以便回滚。
+
+### 2.5 有网络服务器启动
+
+```sh
+cd /opt/dashboard-new
+sh start.sh
+```
+
+默认 auto 模式先尝试 Docker Hub，再尝试公共 ECR；均失败时自动校验并加载包内离线镜像。如果要求在线拉取失败就停止，不允许回退：
+
+```sh
+sh start.sh --mode online
+```
+
+### 2.6 无网络服务器启动
+
+```sh
+cd /opt/dashboard-new
+sh start.sh --mode offline
+```
+
+offline 模式不执行 `docker pull`，只校验并导入包内对应 CPU 架构的镜像。有网和无网模式使用相同 Nginx 配置，前端都是 80 端口。
+
+### 2.7 验证
+
+```sh
+docker ps --filter name=data-overview-offline
+docker logs --tail 100 data-overview-offline
+curl -i http://127.0.0.1/health
+curl -I http://127.0.0.1/
+curl -i http://127.0.0.1/api/auth/login
+```
+
+浏览器访问：
 
 ```text
-http://大屏地址/?returnUrl=https%3A%2F%2Fadmin.example.com%2F#/
+http://服务器IP/#/
 ```
 
-返回地址必须是完整的 HTTP(S) 地址。按钮不会额外拼接 token。未传参数时使用构建时的 `VITE_ADMIN_URL`；两者都没有时提示“请从管理端进入”。修改兜底地址需要修改源码环境配置并重新打包，修改服务器上的 `.env` 不会改变已构建的页面。
+首页和 `/health` 返回 200 只表示前端服务正常。API 502/504 表示后端地址、监听或网络异常；API 401/403 表示登录或权限异常。登录接口不应返回 Tomcat 的 HTML 400；当前配置使用合法 Host 转发，避免后端因上游组名包含下划线而拒绝请求。
 
-## 6. 更新与回退
+## 3. Windows 服务器：无 Docker，原生 Nginx
 
-1. 记录当前 `WEB_PORT` 和 `NGINX_ENV`，将现有部署目录完整备份到另一个目录。
-2. 上传新发布包的全部内容。对比并保留现场修改过的文案和 Nginx 后端地址。
-3. 使用原来的端口和环境执行部署命令，验证页面和接口。
-4. 需要回退时，将部署目录恢复为完整的上一版备份，再使用原来的端口和环境执行部署命令。
+Windows 服务器不安装 Docker、Docker Desktop、WSL、Node.js 或 npm。需要 PowerShell 5.1+，80 端口可用，后端默认在同机 `127.0.0.1:8080`。
 
-上传期间运行中的服务可能读到新旧混合文件，请安排维护窗口。现场配置变更应同步回源码并记录。
+### 3.1 上传、校验和解压
 
-| 修改内容 | 生效方式 |
+在 PowerShell 中进入上传目录后执行：
+
+```powershell
+$package = 'dashboard-development.tar.gz'
+$expected = ((Get-Content ".\$package.sha256" -Raw).Trim() -split '\s+')[0]
+$actual = (Get-FileHash ".\$package" -Algorithm SHA256).Hash
+if ($actual -ne $expected) { throw '交付包 SHA256 校验失败' }
+
+New-Item -ItemType Directory -Force C:\Apps\dashboard-new | Out-Null
+tar -xzf ".\$package" -C C:\Apps\dashboard-new
+Set-Location C:\Apps\dashboard-new
+Get-Item .\native.ps1, .\deploy\nginx.native.conf, .\index.html
+```
+
+### 3.2 配置后端
+
+Windows 原生 Nginx 使用：
+
+```text
+deploy/nginx.native.conf
+```
+
+默认 upstream 是 `127.0.0.1:8080`，前端 `listen 80;`。后端在同机 8080 时无需修改；后端不在本机时改为实际内网 IP 或域名。
+
+### 3.3 停止旧版并启动新版
+
+旧版也是本项目原生 Nginx 时，进入旧目录停止：
+
+```powershell
+Set-Location C:\Apps\dashboard-old
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action stop
+Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
+```
+
+返回为空表示 80 端口已释放。启动新版：
+
+```powershell
+Set-Location C:\Apps\dashboard-new
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1
+```
+
+查看状态、重载配置和停止：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action status
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action reload
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action stop
+```
+
+也可双击 `start-native.cmd` 启动。原生 Nginx 默认不是 Windows 服务，系统重启后需要重新启动，或由运维配置计划任务。
+
+### 3.4 验证
+
+```powershell
+Invoke-WebRequest http://127.0.0.1/health -UseBasicParsing
+Invoke-WebRequest http://127.0.0.1/ -UseBasicParsing
+Get-Content .\logs\native-error.log -Tail 100 -ErrorAction SilentlyContinue
+```
+
+浏览器访问 `http://服务器IP/#/`。启动失败时检查 `logs/native-error.log` 和 80 端口占用：
+
+```powershell
+Get-NetTCPConnection -LocalPort 80 -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess
+Get-Process -Id (Get-NetTCPConnection -LocalPort 80 -State Listen).OwningProcess
+```
+
+确认进程身份后使用旧服务自己的停止方式关闭，不要批量结束所有 `nginx.exe`。
+
+## 4. 更新和回滚
+
+新版本必须解压到独立目录，不要覆盖正在运行的旧目录。统一流程：
+
+1. 校验并解压新包；
+2. 核对后端地址与 `config/dashboard-labels.json`；
+3. 停止旧版，释放 80 端口；
+4. 在新目录启动并验证新版；
+5. 稳定后再清理旧目录和旧容器。
+
+Linux 回滚：
+
+```sh
+docker stop data-overview-offline
+cd /opt/dashboard-old
+sh start.sh --mode offline
+```
+
+Windows 回滚：
+
+```powershell
+Set-Location C:\Apps\dashboard-new
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1 -Action stop
+Set-Location C:\Apps\dashboard-old
+powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1
+```
+
+## 5. 现场配置和排错
+
+展示文案和服务详情图片地址位于 `config/dashboard-labels.json`。服务详情图片放在 `service-details/` 下，配置中的 `src` 使用相对站点根目录的路径，例如 `service-details/service-01/example.png`。只修改配置或替换图片并保持 JSON 合法，保存后刷新浏览器即可；这些文件均禁用浏览器缓存。现场修改要同步回源码的 `public/config/dashboard-labels.json` 和 `public/service-details/`，避免下次部署覆盖。
+
+| 现象 | 检查 |
 | --- | --- |
-| `config/dashboard-labels.json` 文案 | 保存并刷新浏览器 |
-| `README.md` 说明 | 保存文件，无需重启 |
-| Nginx 代理地址、对外端口 | 使用对应端口和环境重新执行部署命令 |
-| 页面逻辑、样式、构建环境参数 | 从源码重新打包并发布 |
+| 80 端口占用 | Linux：`ss -lntp \| grep ':80 '`；Windows：`Get-NetTCPConnection -LocalPort 80 -State Listen` |
+| 首页打不开 | 服务状态、防火墙、安全组、80/TCP |
+| 首页正常，API 502/504 | Nginx upstream、后端 8080、后端容器、防火墙 |
+| 登录返回 HTML 400 | 检查是否使用最新 Nginx 配置；Host 不能是带下划线的 `dashboard_backend` |
+| API 401/403 | 登录账号、密码、token、后端授权 |
+| Linux 离线镜像校验失败 | 重新上传完整包和 SHA256，不要绕过校验 |
+| Windows 原生启动失败 | `logs/native-error.log` |
+| Windows 重启后页面不可用 | 重新执行 `native.ps1` 或检查计划任务 |
 
-## 7. 检查与排错
+## 6. 更新离线运行资源
 
-以下命令使用默认端口和环境。实际使用其他值时，请修改 Compose 命令中的变量及 curl 地址中的端口。
+正常页面修改和发版不执行本节命令。只有升级基础 Nginx 镜像或原生运行包时，维护者才在有网络且具备 Docker 的电脑执行：
 
-```bash
-cd /opt/dashboard
-WEB_PORT=80 NGINX_ENV=dev docker compose -f deploy/docker-compose.yml ps
-WEB_PORT=80 NGINX_ENV=dev docker compose -f deploy/docker-compose.yml logs --tail=100 dashboard
-docker exec data-overview-dev nginx -t
-curl -i http://127.0.0.1/health
-curl -i http://127.0.0.1/api/bi/data-source
+```sh
+npm run prepare:images
+npm run prepare:native
 ```
 
-Compose 文件位于 `deploy/` 下，不能在发布根目录直接执行不带 `-f` 的 `docker compose ps`。
-
-| 现象 | 排查方式 |
-| --- | --- |
-| 页面打不开 | 检查容器、端口占用、防火墙和安全组，先在服务器请求 `/health` |
-| `/health` 正常但没有数据 | 健康检查只说明 Nginx 存活，继续检查业务接口响应和后端日志 |
-| 接口返回 502/504 | 检查后端服务、代理地址和端口，以及容器到后端的网络连接 |
-| 接口返回 401/403 | 检查登录状态、请求的 Authorization 和后端鉴权规则 |
-| 更新后空白或资源 404 | 确认发布包上传完整，尤其是 `assets/`，再强制刷新浏览器 |
-| 修改文案未生效 | 确认修改的是服务器的 `config/dashboard-labels.json`，检查 JSON 格式并刷新 |
-| 修改 Nginx 未生效 | 确认修改的是当前环境对应的配置，并重新执行部署命令 |
-
-## 8. 如何维护本文档
-
-唯一维护源文件是代码仓库中的 **`public/README.md`**，使用普通文本编辑器修改即可。打包会自动复制为 **`dist/README.md`**，随发布包交付。不要只修改 `dist/README.md`，下次打包会覆盖它。
-
-部署命令、默认端口、后端地址、配置路径或脚本行为变化时，应在同一次代码变更中更新本文，并按说明核对实际文件和命令。不要在示例中写入真实 token、密码等凭证。
-
-仅更新说明时，可把修改后的源文件复制到服务器部署目录的 `README.md`，无需重启；同时提交源码，确保下次发布带上最新版文档。
-
-拿到源码需要自行打包时，在安装好 Node.js 22 和 npm 的机器上执行：
-
-```bash
-npm ci
-npm run build:dev
-# 或使用测试环境：npm run build:test
-```
-
-构建后交付 `dist` 的全部内容。
+更新后必须将 `.offline-images/`、`.offline-native/` 中的运行包、manifest、许可证和 SHA256 一起提交，并重新打包和验收。

@@ -1,3 +1,4 @@
+<!-- 数据来源层：请求并展示各来源数量，管理来源节点的悬停和焦点状态。 -->
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { getDataSource } from '@/api'

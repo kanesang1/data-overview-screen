@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { getDataEvaluateDetail, getDataOverview, getDataServices } from '@/api'
-import type { DataEvaluateDetailItem, DataOverviewData, DataServiceItem } from '@/api'
+import { getDataOverview, getDatasetPreview } from '@/api'
+import type { DataOverviewData, DatasetPreviewItem } from '@/api'
 import metricOne from '@/assets/img/center/total-view-icon/overview-metric-01.svg'
 import metricTwo from '@/assets/img/center/total-view-icon/overview-metric-02.svg'
 import metricThree from '@/assets/img/center/total-view-icon/overview-metric-03.svg'
@@ -22,6 +22,7 @@ import ApplicationLayer from './center/tree/ApplicationLayer.vue'
 import FoundationLayer from './center/tree/FoundationLayer.vue'
 import ServiceLayer from './center/tree/ServiceLayer.vue'
 import SourceLayer from './center/tree/SourceLayer.vue'
+import { getFoundationIconIndex } from './center/tree/foundation-icon-order'
 import {
   scenarioNodes,
 } from './center/mock-data'
@@ -49,58 +50,59 @@ const mapOverviewMetrics = (data: DataOverviewData): MetricCard[] => {
   ]
 }
 
-const mapServiceNode = (item: DataServiceItem): TreeNode => ({
-  id: item.id,
-  label: item.serviceDesc,
-  value: String(item.serviceCnt),
-  unit: dashboardLabels.centerTree.service.fieldUnits.serviceCnt,
-})
+const resolvePublicAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
 
-const mapApplicationNode = (item: DataEvaluateDetailItem): TreeNode => ({
-  id: item.datasetId,
-  label: item.datasetDesc,
-  dimensionScores: {
-    waveformScore: item.waveformScore,
-    targetScore: item.targetScore,
-    clutterScore: item.clutterScore,
-    sceneScore: item.sceneScore,
-    climateScore: item.climateScore,
-  },
-})
-
-const mapFoundationNode = (item: DataEvaluateDetailItem, index: number): TreeNode => ({
-  id: item.datasetId,
-  label: item.datasetDesc,
-  value: String(item.datasetCnt),
-  unit: dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt,
-  icon: foundationIcons[index % foundationIcons.length],
-  dimensionScores: {
-    waveformScore: item.waveformScore,
-    targetScore: item.targetScore,
-    clutterScore: item.clutterScore,
-    sceneScore: item.sceneScore,
-    climateScore: item.climateScore,
-  },
-})
+const mapPreviewNode = (item: DatasetPreviewItem, index: number, type: 1 | 2 | 3, itemCount: number): TreeNode => {
+  const node: TreeNode = {
+    id: index + 1,
+    label: item.dataset_name,
+    value: String(item.dataset_cnt),
+    unit: dashboardLabels.centerTree.service.fieldUnits.serviceCnt,
+    tooltip: {
+      projectName: item.dataset_name,
+      projectCount: item.dataset_cnt,
+      items: Array.isArray(item.key_list)
+        ? item.key_list.map(detail => ({ key: detail.key_name, value: detail.key_value }))
+        : [],
+    },
+  }
+  if (type === 1) {
+    node.unit = dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt
+    const iconIndex = getFoundationIconIndex(index, itemCount)
+    node.icon = foundationIcons[iconIndex % foundationIcons.length]
+  }
+  if (type === 3) {
+    const galleryConfig = dashboardLabels.centerTree.service.imageGalleries[index]
+    node.gallery = galleryConfig ? {
+      title: item.dataset_name,
+      items: galleryConfig.items.map(image => ({
+        src: resolvePublicAsset(image.src),
+        description: image.description,
+        layout: image.layout,
+      })),
+    } : undefined
+  }
+  return node
+}
 
 const loadDatasetNodes = async () => {
   const [foundationResult, applicationResult, overviewResult, servicesResult] = await Promise.allSettled([
-    getDataEvaluateDetail({ datasetType: 1 }),
-    getDataEvaluateDetail({ datasetType: 2 }),
+    getDatasetPreview({ data_type: 1 }),
+    getDatasetPreview({ data_type: 2 }),
     getDataOverview(),
-    getDataServices(),
+    getDatasetPreview({ data_type: 3 }),
   ])
 
   if (foundationResult.status === 'fulfilled') {
     const response = foundationResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
-      foundationNodes.value = response.data.map(mapFoundationNode)
+      foundationNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 1, response.data.length))
     }
   }
   if (applicationResult.status === 'fulfilled') {
     const response = applicationResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
-      applicationNodes.value = response.data.map(mapApplicationNode)
+      applicationNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 2, response.data.length))
     }
   }
   if (overviewResult.status === 'fulfilled') {
@@ -112,7 +114,7 @@ const loadDatasetNodes = async () => {
   if (servicesResult.status === 'fulfilled') {
     const response = servicesResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
-      serviceNodes.value = response.data.map(mapServiceNode)
+      serviceNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 3, response.data.length))
     }
   }
 }
@@ -137,6 +139,7 @@ onMounted(() => {
 
 <style scoped>
 .center-stage { position: absolute; z-index: 1; top: 8.8889vh; right: 23.6979vw; bottom: 3.8889vh; left: 23.6979vw; }
+.center-stage:has(.tree-layer.has-active-tooltip) { z-index: 100; }
 .architecture { position: relative; width: min(54.2708vw, 96.4559vh); height: auto; aspect-ratio: 1042 / 850; margin: 1.6667vh 0 0 50%; transform: translateX(-50%); container-type: inline-size; }
 .architecture__background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
 </style>

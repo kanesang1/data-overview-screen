@@ -1,57 +1,77 @@
-#!/usr/bin/env bash
-set -Eeuo pipefail
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="$SCRIPT_DIR"
-COMPOSE_FILE="$APP_DIR/deploy/docker-compose.yml"
-CONTAINER_NAME="data-overview-dev"
-
-export WEB_PORT="${WEB_PORT:-80}"
-export NGINX_ENV="${NGINX_ENV:-dev}"
-
-on_error() {
-  echo "[ERROR] 部署失败，输出最近的容器日志：" >&2
-  docker compose -f "$COMPOSE_FILE" logs --tail=100 dashboard 2>/dev/null || true
-}
-trap on_error ERR
-
-echo "[1/5] 检查部署文件和运行环境"
-command -v docker >/dev/null || { echo "未安装 Docker" >&2; exit 1; }
-docker compose version >/dev/null || { echo "未安装 Docker Compose V2" >&2; exit 1; }
-test -f "$APP_DIR/index.html" || { echo "缺少 $APP_DIR/index.html" >&2; exit 1; }
-test -f "$APP_DIR/config/dashboard-labels.json" || { echo "缺少运行时文案配置" >&2; exit 1; }
-test -f "$APP_DIR/deploy/nginx.${NGINX_ENV}.conf" || { echo "缺少 nginx.${NGINX_ENV}.conf" >&2; exit 1; }
-docker compose -f "$COMPOSE_FILE" config --quiet
-
-echo "[2/5] 拉取 Web 镜像"
-docker compose -f "$COMPOSE_FILE" pull dashboard
-
-echo "[3/5] 更新容器"
-docker compose -f "$COMPOSE_FILE" up -d --force-recreate --remove-orphans dashboard
-
-echo "[4/5] 等待健康检查"
-for attempt in $(seq 1 45); do
-  status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$CONTAINER_NAME" 2>/dev/null || true)"
-  if [ "$status" = "healthy" ]; then
-    break
-  fi
-  if [ "$status" = "unhealthy" ] || [ "$status" = "exited" ] || [ "$status" = "dead" ]; then
-    echo "容器状态异常：$status" >&2
-    exit 1
-  fi
-  if [ "$attempt" -eq 45 ]; then
-    echo "等待容器健康检查超时，当前状态：$status" >&2
-    exit 1
-  fi
-  sleep 2
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+MODE=auto
+NAME=data-overview-offline
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --mode|--name) [ "$#" -ge 2 ] || { echo "Missing value: $1"; exit 1; }
+      case "$1" in --mode) MODE=$2 ;; --name) NAME=$2 ;; esac; shift 2 ;;
+    *) echo "Usage: sh start.sh [--mode auto|offline|online] [--name NAME]"; exit 1 ;;
+  esac
 done
-
-echo "[5/5] 验证页面和 API 代理"
-curl --fail --silent --show-error "http://127.0.0.1:${WEB_PORT}/health" >/dev/null
-curl --fail --silent --show-error "http://127.0.0.1:${WEB_PORT}/" >/dev/null
-curl --fail --silent --show-error "http://127.0.0.1:${WEB_PORT}/config/dashboard-labels.json" >/dev/null
-curl --fail --silent --show-error "http://127.0.0.1:${WEB_PORT}/api/bi/data-source" >/dev/null
-
-trap - ERR
-echo "部署成功：端口 ${WEB_PORT}，Nginx 环境 ${NGINX_ENV}"
-docker compose -f "$COMPOSE_FILE" ps
+case "$MODE" in auto|offline|online) ;; *) echo "Invalid mode: $MODE"; exit 1 ;; esac
+case "$NAME" in ''|*[!a-zA-Z0-9_.-]*|-*) echo "Invalid container name"; exit 1 ;; esac
+[ "$(uname -s)" = Linux ] || { echo "On Windows use start.ps1 or start.cmd."; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "Install and start Docker Engine first."; exit 1; }
+docker info >/dev/null
+[ "$(docker info --format '{{.OSType}}')" = linux ] || { echo "Linux containers required."; exit 1; }
+ENDPOINT=${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}
+case "$ENDPOINT" in unix://*) ;; *) echo "Use a local Docker Engine (unix socket)."; exit 1 ;; esac
+case "$(docker info --format '{{.OperatingSystem}}')" in *Docker\ Desktop*) echo "Use native Linux Docker Engine, or Windows start.ps1 for Docker Desktop."; exit 1 ;; esac
+ARCH=$(docker info --format '{{.Architecture}}')
+case "$ARCH" in x86_64|amd64) ARCH=amd64 ;; aarch64|arm64) ARCH=arm64 ;; *) echo "Unsupported architecture: $ARCH"; exit 1 ;; esac
+IMAGE=nginx:1.27-alpine
+CONFIG="$ROOT/deploy/nginx.offline.conf"
+ARCHIVE="$ROOT/images/nginx-linux-$ARCH.tar"
+for FILE in "$ROOT/index.html" "$ROOT/config/dashboard-labels.json" "$CONFIG"; do
+  [ -f "$FILE" ] || { echo "Missing file: $FILE. Deploy the built dist directory."; exit 1; }
+done
+PORT=$(sed -n 's/^[[:space:]]*listen[[:space:]]*\([0-9]*\);/\1/p' "$CONFIG")
+case "$PORT" in ''|*[!0-9]*) echo "Config must have one numeric listen port."; exit 1 ;; esac
+[ "$PORT" -gt 0 ] && [ "$PORT" -le 65535 ] || { echo "Invalid listen port"; exit 1; }
+if docker container inspect "$NAME" >/dev/null 2>&1; then
+  [ "$(docker inspect --format '{{index .Config.Labels "data-overview.offline"}}' "$NAME")" = true ] || { echo "Container belongs to another deployment: $NAME"; exit 1; }
+fi
+pull_image() {
+  if [ -n "${OFFLINE_IMAGE_SOURCE:-}" ]; then
+    docker pull --platform "linux/$ARCH" "$OFFLINE_IMAGE_SOURCE" && docker tag "$OFFLINE_IMAGE_SOURCE" "$IMAGE"
+  else
+    docker pull --platform "linux/$ARCH" "$IMAGE" || {
+      SOURCE=public.ecr.aws/docker/library/nginx:1.27-alpine
+      docker pull --platform "linux/$ARCH" "$SOURCE" && docker tag "$SOURCE" "$IMAGE"
+    }
+  fi
+}
+load_image() {
+  [ -f "$ARCHIVE" ] && [ -f "$ARCHIVE.sha256" ] || { echo "Missing offline archive/checksum: $ARCHIVE"; return 1; }
+  command -v sha256sum >/dev/null 2>&1 || { echo "sha256sum is required for offline verification."; return 1; }
+  (cd "$ROOT/images" && sha256sum -c "nginx-linux-$ARCH.tar.sha256") || return 1
+  docker load -i "$ARCHIVE"
+}
+echo "[1/4] Image mode: $MODE; platform: linux/$ARCH"
+case "$MODE" in
+  offline) load_image ;;
+  online) pull_image || { echo "Online pull failed. Use --mode offline with a complete package."; exit 1; } ;;
+  auto) if ! pull_image; then echo "Online sources unavailable; using verified bundled image."; load_image; fi ;;
+esac
+[ "$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$IMAGE")" = "linux/$ARCH" ] || { echo "Image platform mismatch"; exit 1; }
+IMAGE_ID=$(docker image inspect --format '{{.Id}}' "$IMAGE")
+echo "[2/4] Checking Nginx configuration..."
+docker run --pull=never --rm --network host --entrypoint nginx -v "$CONFIG:/etc/nginx/conf.d/default.conf:ro" "$IMAGE_ID" -t
+if docker container inspect "$NAME" >/dev/null 2>&1; then docker rm -f "$NAME" >/dev/null; fi
+echo "[3/4] Starting dashboard..."
+docker run --pull=never -d --name "$NAME" --label data-overview.offline=true --restart unless-stopped --network host --entrypoint nginx -v "$ROOT:/usr/share/nginx/html:ro" -v "$CONFIG:/etc/nginx/conf.d/default.conf:ro" "$IMAGE_ID" -g 'daemon off;'
+echo "[4/4] Checking startup..."
+ATTEMPT=0
+while [ "$ATTEMPT" -lt 20 ]; do
+  if [ "$(docker inspect --format '{{.State.Running}}' "$NAME")" != true ]; then docker logs --tail 50 "$NAME"; exit 1; fi
+  if docker exec "$NAME" sh -c 'for path in /health / /config/dashboard-labels.json; do wget -q -O /dev/null "http://127.0.0.1:$1$path" || exit 1; done' sh "$PORT"; then
+    echo "Deployment ready: http://SERVER_IP:$PORT/ (backend authentication/data checked separately)."
+    exit 0
+  fi
+  ATTEMPT=$((ATTEMPT + 1)); sleep 1
+done
+docker logs --tail 50 "$NAME"
+echo "Startup check failed."
+exit 1

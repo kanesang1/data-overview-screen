@@ -66,6 +66,54 @@ export interface DataEvaluateDetailItem {
   climateScore: number
 }
 
+/** 中间数据架构各层的数据集类型。 */
+export type DatasetPreviewType = 1 | 2 | 3
+
+/** 中间数据架构数据集列表查询参数。 */
+export interface DatasetPreviewParams {
+  /** 1 基础数据集，2 应用数据集，3 数据服务。 */
+  data_type: DatasetPreviewType
+}
+
+/** 数据集弹窗中的键值项。 */
+export interface DatasetPreviewKeyItem {
+  key_name: string
+  key_value: string | number
+}
+
+/** 中间数据架构数据集。 */
+export interface DatasetPreviewItem {
+  dataset_name: string
+  dataset_cnt: number
+  key_list: DatasetPreviewKeyItem[]
+}
+
+/** 中间顶部「数据总览」及左上角质量评价指标。 */
+export interface DataOverviewData {
+  /** 数据记录总数。 */
+  totalCnt: number
+  /** 数据记录月环比，单位：%。 */
+  recordMom: number
+  /** 数据表总数。 */
+  totalTable: number
+  /** 数据总容量，单位：TB。 */
+  totalSize: number
+  /** 数据质量综合评分。 */
+  qualityScore: number
+  /** 数据集综合评分。 */
+  datasetScore: number
+  /** 波形维度评分。 */
+  waveformScore: number
+  /** 目标维度评分。 */
+  targetScore: number
+  /** 杂波维度评分。 */
+  clutterScore: number
+  /** 场景维度评分。 */
+  sceneScore: number
+  /** 气候维度评分。 */
+  climateScore: number
+}
+
 /**
  * 中间树最底层「数据来源」和左下角「数据资产来源」的数据结构。
  * 中间树接口返回数量，左下角接口返回占比。
@@ -83,18 +131,6 @@ export interface DataSourceData {
   bohai: number
   /** 东海数据。 */
   east_sea: number
-}
-
-/** 中间顶部「数据总览」指标。 */
-export interface DataOverviewData {
-  /** 数据记录总数。 */
-  totalCnt: number
-  /** 数据记录月环比，单位：%。 */
-  recordMom: number
-  /** 数据表总数。 */
-  totalTable: number
-  /** 数据总容量，单位：TB。 */
-  totalSize: number
 }
 
 /** 中间树顶层「数据服务」数据。 */
@@ -127,6 +163,13 @@ export const getDataAssetApplication = () =>
  */
 export const getDataEvaluateDetail = (params: DataEvaluateDetailParams) =>
   http.get<ApiResponse<DataEvaluateDetailItem[]>>('data-evaluate-detail', { params })
+
+/**
+ * 按类型查询中间数据架构的数据集列表。
+ * GET /api/bi/data-preview?data_type=1|2|3
+ */
+export const getDatasetPreview = (params: DatasetPreviewParams) =>
+  http.get<ApiResponse<DatasetPreviewItem[]>>('data-preview', { params })
 
 /**
  * 查询中间树最底层「数据来源」。

@@ -95,7 +95,46 @@
       },
       "fieldUnits": {
         "serviceCnt": "个"
-      }
+      },
+      "imageGalleries": [
+        {
+          "items": [
+            { "src": "service-details/service-01/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-01/wide-01.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" },
+            { "src": "service-details/service-01/square-02.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-01/wide-02.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" },
+            { "src": "service-details/service-01/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-01/wide-02.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" }
+          ]
+        },
+        {
+          "items": [
+            { "src": "service-details/service-02/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-02/wide-01.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" },
+            { "src": "service-details/service-02/square-02.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-02/wide-02.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" },
+            { "src": "service-details/service-01/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-01/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-01/square-01.png", "description": "图片说明", "layout": "square" }
+          ]
+        },
+        {
+          "items": [
+            { "src": "service-details/service-03/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-03/wide-01.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" },
+            { "src": "service-details/service-03/square-02.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-03/wide-02.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" }
+          ]
+        },
+        {
+          "items": [
+            { "src": "service-details/service-04/square-01.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-04/wide-01.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" },
+            { "src": "service-details/service-04/square-02.png", "description": "图片说明", "layout": "square" },
+            { "src": "service-details/service-04/wide-02.png", "description": "图片说明图片说明图片说明图片说明", "layout": "wide" }
+          ]
+        }
+      ]
     },
     "application": {
       "title": "应用数据",

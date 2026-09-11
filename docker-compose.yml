@@ -23,7 +23,7 @@ services:
         NGINX_CONFIG: nginx.test.conf
     image: data-overview-screen:test
     ports:
-      - "${TEST_PORT:-8082}:80"
+      - "${TEST_PORT:-80}:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

@@ -6,3 +6,7 @@ dist
 *.tsbuildinfo
 Dockerfile*
 README.md
+.offline-images
+.offline-native
+artifacts
+*.rar

@@ -5,6 +5,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import { appConfig } from '@/config/env'
+import { ensureAccessToken, renewAccessToken } from './auth'
 
 export interface ApiErrorData {
   message?: string
@@ -39,17 +40,34 @@ export const apiClient = axios.create({
   },
 })
 
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = getAccessToken()
+apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const token = config.headers.has('Authorization') ? null : getAccessToken() || await ensureAccessToken()
   if (token && !config.headers.has('Authorization')) {
     config.headers.set('Authorization', `Bearer ${token}`)
   }
   return config
 })
 
+type RetryConfig = InternalAxiosRequestConfig & { authRetried?: boolean }
+async function retryWithLogin(config: RetryConfig) {
+  config.authRetried = true
+  const rejectedToken = String(config.headers.get('Authorization') || '').replace(/^Bearer /, '')
+  const token = await renewAccessToken(rejectedToken)
+  config.headers.set('Authorization', 'Bearer ' + token)
+  return apiClient.request(config)
+}
+
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    const config = response.config as RetryConfig
+    if (response.data?.code === 401 && !config.authRetried) return retryWithLogin(config)
+    return response
+  },
   (error: AxiosError<ApiErrorData>) => {
+    const config = error.config as RetryConfig | undefined
+    if ((error.response?.status === 401 || error.response?.data?.code === 401) && config && !config.authRetried) {
+      return retryWithLogin(config)
+    }
     const message =
       error.response?.data?.message ||
       (error.code === AxiosError.ECONNABORTED ? '接口请求超时' : error.message) ||

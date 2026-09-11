@@ -6,7 +6,7 @@ RUN npm ci
 
 COPY . .
 ARG BUILD_MODE=test
-RUN npm run build -- --mode "$BUILD_MODE"
+RUN npm run build:web -- --mode "$BUILD_MODE"
 
 FROM nginx:1.27-alpine
 ARG NGINX_CONFIG=nginx.test.conf

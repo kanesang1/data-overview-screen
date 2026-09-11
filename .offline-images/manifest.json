@@ -1,0 +1,22 @@
+{
+  "tag": "nginx:1.27-alpine",
+  "images": [
+    {
+      "platform": "linux/amd64",
+      "source": "public.ecr.aws/docker/library/nginx:1.27-alpine",
+      "imageId": "sha256:6769dc3a703c719c1d2756bda113659be28ae16cf0da58dd5fd823d6b9a050ea",
+      "repoDigests": [
+        "nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10",
+        "public.ecr.aws/docker/library/nginx@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10"
+      ],
+      "sha256": "53dc71fb3e9584317bab8208ea7d3c0ff5abec3dc8ba0bbfc491088f37416b3e"
+    },
+    {
+      "platform": "linux/arm64",
+      "source": "public.ecr.aws/docker/library/nginx:1.27-alpine",
+      "imageId": "sha256:96868d9fa38f469a86d2f25787e43ee9ad330339d30be260aa9f5a338bb03751",
+      "repoDigests": [],
+      "sha256": "e4cb4b670df953ec64e0ce43273d6dcaf72270497b97675afac5f360d8ac0f29"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 node_modules
+.tools
 dist
 .DS_Store
 *.local
@@ -10,3 +11,7 @@ vite.config.js
 vite.config.d.ts
 .vscode/*
 !.vscode/extensions.json
+
+.offline-images/*.tmp
+artifacts/
+.offline-native/*.tmp

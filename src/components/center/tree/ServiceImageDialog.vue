@@ -13,7 +13,13 @@ const emit = defineEmits<{
 <template>
   <Teleport to="body">
     <div class="service-image-dialog__backdrop" @click.self="emit('close')">
-      <section class="service-image-dialog" role="dialog" aria-modal="true" :aria-label="gallery.title">
+      <section
+        class="service-image-dialog"
+        :class="{ 'service-image-dialog--single': gallery.items.length === 1 }"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="gallery.title"
+      >
         <header class="service-image-dialog__header">
           <h3>{{ gallery.title }}</h3>
           <button type="button" aria-label="关闭图片弹窗" @click="emit('close')">×</button>
@@ -109,5 +115,17 @@ const emit = defineEmits<{
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.service-image-dialog--single {
+  width: fit-content;
+  max-width: 96vw;
+}
+.service-image-dialog--single .service-image-dialog__grid figure {
+  width: 27.1875vw;
+  flex: 0 0 27.1875vw;
+}
+.service-image-dialog--single .service-image-dialog__grid img {
+  height: auto;
+  object-fit: contain;
 }
 </style>

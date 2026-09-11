@@ -283,7 +283,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\native.ps1
 
 ## 5. 现场配置和排错
 
-展示文案位于 `config/dashboard-labels.json`。只修改显示值并保持 JSON 合法，保存后刷新浏览器即可；现场修改要同步回源码的 `public/config/dashboard-labels.json`，避免下次部署覆盖。
+展示文案和服务详情图片地址位于 `config/dashboard-labels.json`。服务详情图片放在 `service-details/` 下，配置中的 `src` 使用相对站点根目录的路径，例如 `service-details/service-01/example.png`。只修改配置或替换图片并保持 JSON 合法，保存后刷新浏览器即可；这些文件均禁用浏览器缓存。现场修改要同步回源码的 `public/config/dashboard-labels.json` 和 `public/service-details/`，避免下次部署覆盖。
 
 | 现象 | 检查 |
 | --- | --- |

@@ -13,6 +13,9 @@ for (const name of ['native', 'offline', 'windows', 'dev', 'test']) {
   assert.match(config, /proxy_set_header Authorization \$http_authorization;/)
   assert.doesNotMatch(config, /proxy_set_header Host \$proxy_host;/)
   assert.doesNotMatch(config, /8\.148\.14\.229/)
+  if (['native', 'offline', 'windows'].includes(name)) {
+    assert.match(config, /location \/service-details\/\s*\{[^}]*try_files \$uri =404;[^}]*Cache-Control 'no-store';/s)
+  }
 }
 const calls = []
 const backend = createServer(async (req, res) => {

@@ -50,6 +50,7 @@ th, td { padding: 0; line-height: normal; }
 thead tr { height: 2.962963vh; background: #213354; box-shadow: 0 -.092593vh 0 0 rgba(0, 0, 0, .1) inset; }
 th { color: rgba(255, 255, 255, .6); text-align: center; font-size: .677083vw; font-weight: 400; }
 th:nth-child(2), .asset-name { padding-left: 1.770833vw; text-align: left; }
+th:nth-child(3), .usage-count { padding-left: .46875vw; text-align: left; }
 tbody tr { height: 4.074074vh; background: rgba(30, 63, 126, .26); box-shadow: 0 -.092593vh 0 0 rgba(255, 255, 255, .1) inset; }
 .rank-cell { color: rgba(255, 255, 255, .6); text-align: center; font-size: .677083vw; font-weight: 500; }
 .rank-medal { position: relative; display: inline-block; width: 1.5625vw; height: 2.314815vh; vertical-align: middle; font-size: .625vw; font-weight: 900; text-shadow: .026042vw .046296vh 0 rgba(255, 255, 255, .7); }
@@ -59,7 +60,7 @@ tbody tr { height: 4.074074vh; background: rgba(30, 63, 126, .26); box-shadow: 0
 .rank-medal--2 { color: #606060; }
 .rank-medal--3 { color: #5b3717; }
 .asset-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255, 255, 255, .8); font-size: .729167vw; font-weight: 400; }
-.usage-count { color: #1bffe1; font-size: .729167vw; font-weight: 700; text-align: left; padding-left: .46875vw; font-variant-numeric: tabular-nums; }
+.usage-count { color: #1bffe1; font-size: .729167vw; font-weight: 700; font-variant-numeric: tabular-nums; }
 .usage-status { text-align: center; color: rgba(255,255,255,.6); font-size: .677083vw; }
 .usage-status button { margin-left: .520833vw; border: 0; padding: 0; background: transparent; color: #1bffe1; cursor: pointer; }
 </style>

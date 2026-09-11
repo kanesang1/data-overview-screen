@@ -14,8 +14,6 @@ import foundationIconFour from '@/assets/img/center/tree/three/Vector (3).svg'
 import foundationIconFive from '@/assets/img/center/tree/three/Vector (4).svg'
 import foundationIconSix from '@/assets/img/center/tree/three/Vector (5).svg'
 import foundationIconSeven from '@/assets/img/center/tree/three/Vector (6).svg'
-import foundationIconEight from '@/assets/img/center/tree/three/Vector (7).svg'
-import foundationIconNine from '@/assets/img/center/tree/three/Vector (8).svg'
 import { dashboardLabels } from '@/config/dashboard-labels'
 import TopMetrics from './center/cards/TopMetrics.vue'
 import ApplicationLayer from './center/tree/ApplicationLayer.vue'
@@ -33,7 +31,7 @@ const foundationNodes = ref<TreeNode[]>([])
 const foundationIcons = [
   foundationIconOne, foundationIconTwo, foundationIconThree,
   foundationIconFour, foundationIconFive, foundationIconSix,
-  foundationIconSeven, foundationIconEight, foundationIconNine,
+  foundationIconSeven,
 ]
 const metrics = ref<MetricCard[]>([])
 const serviceNodes = ref<TreeNode[]>([])

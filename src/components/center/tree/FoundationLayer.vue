@@ -11,7 +11,7 @@ import NodeDataTooltip from './NodeDataTooltip.vue'
 const props = defineProps<{ scenarioNodes: TreeNode[]; foundationNodes: TreeNode[] }>()
 
 // SVG export sizes include shadow padding; preserve their native scale at 1920 × 1080.
-const foundationIconSizes = [[53, 48], [45, 48], [49, 48], [48, 46], [64, 64], [46, 46], [42, 48], [42, 42], [44, 44]]
+const foundationIconSizes = [[53, 48], [45, 48], [49, 48], [48, 46], [54, 54], [46, 46], [42, 48]]
 const getFoundationIconStyle = (index: number) => {
   const [width, height] = foundationIconSizes[index % foundationIconSizes.length]
   return { width: `${width / 1042 * 100}cqw`, height: `${height / 1042 * 100}cqw` }
@@ -183,8 +183,8 @@ const getFoundationArcStyle = (index: number, count: number) => {
 .foundation-icon { position: absolute; z-index: 2; left: 50%; bottom: 1.1516cqw; transform: translateX(-50%); object-fit: contain; }
 .foundation-node.is-active .foundation-visual { filter: brightness(1.18) drop-shadow(0 0 .8637cqw rgba(81,218,255,.8)); }
 .foundation-node.is-active .foundation-icon { filter: brightness(1.5); }
-.foundation-node .node-label { margin-top: -.3839cqw; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: normal; }
-.foundation-node .node-metric { margin-top: .1919cqw; }
+.foundation-node .node-label { margin-top: -.3839cqw; color: rgba(255,255,255,.70); font-size: 1.3436cqw; font-weight: 400; line-height: 1; }
+.foundation-node .node-metric { margin-top: -.1919cqw; }
 .foundation-node .node-metric b { color: rgba(149,229,255,.80); font-size: 1.5355cqw; font-weight: 700; }
 .foundation-node .node-metric small { color: rgba(255,255,255,.60); font-size: 1.1516cqw; font-weight: 400; }
 .foundation-node.is-active .node-label { color: #fff; font-weight: 700; }

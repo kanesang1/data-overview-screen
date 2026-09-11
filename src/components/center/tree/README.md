@@ -4,7 +4,7 @@
 
 - `ServiceLayer.vue`：数据服务层，包含节点轮播、提示信息及图片弹窗入口。
 - `ApplicationLayer.vue`：应用数据层，包含循环轨道、可见节点及交互状态。
-- `FoundationLayer.vue`：应用场景与基础数据层，包含弧线布局和基础数据轮播。
+- `FoundationLayer.vue`：应用场景与基础数据层，包含弧线布局、节点高亮和交互详情。
 - `SourceLayer.vue`：数据来源层，负责接口请求和来源节点展示。
 - `components/`：各层引用的可复用或叶子 UI 组件，不在此处处理层级布局。
 - `arc-layout.ts`：多层可复用的弧线等距布局计算。

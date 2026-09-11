@@ -14,12 +14,15 @@ import foundationIconFour from '@/assets/img/center/tree/three/Vector (3).svg'
 import foundationIconFive from '@/assets/img/center/tree/three/Vector (4).svg'
 import foundationIconSix from '@/assets/img/center/tree/three/Vector (5).svg'
 import foundationIconSeven from '@/assets/img/center/tree/three/Vector (6).svg'
+import foundationIconEight from '@/assets/img/center/tree/three/Vector (7).svg'
+import foundationIconNine from '@/assets/img/center/tree/three/Vector (8).svg'
 import { dashboardLabels } from '@/config/dashboard-labels'
 import TopMetrics from './center/cards/TopMetrics.vue'
 import ApplicationLayer from './center/tree/ApplicationLayer.vue'
 import FoundationLayer from './center/tree/FoundationLayer.vue'
 import ServiceLayer from './center/tree/ServiceLayer.vue'
 import SourceLayer from './center/tree/SourceLayer.vue'
+import { getFoundationIconIndex } from './center/tree/foundation-icon-order'
 import {
   scenarioNodes,
 } from './center/mock-data'
@@ -31,7 +34,7 @@ const foundationNodes = ref<TreeNode[]>([])
 const foundationIcons = [
   foundationIconOne, foundationIconTwo, foundationIconThree,
   foundationIconFour, foundationIconFive, foundationIconSix,
-  foundationIconSeven,
+  foundationIconSeven, foundationIconEight, foundationIconNine,
 ]
 const metrics = ref<MetricCard[]>([])
 const serviceNodes = ref<TreeNode[]>([])
@@ -49,7 +52,7 @@ const mapOverviewMetrics = (data: DataOverviewData): MetricCard[] => {
 
 const resolvePublicAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`
 
-const mapPreviewNode = (item: DatasetPreviewItem, index: number, type: 1 | 2 | 3): TreeNode => {
+const mapPreviewNode = (item: DatasetPreviewItem, index: number, type: 1 | 2 | 3, itemCount: number): TreeNode => {
   const node: TreeNode = {
     id: index + 1,
     label: item.dataset_name,
@@ -65,7 +68,8 @@ const mapPreviewNode = (item: DatasetPreviewItem, index: number, type: 1 | 2 | 3
   }
   if (type === 1) {
     node.unit = dashboardLabels.centerTree.foundation.fieldUnits.datasetCnt
-    node.icon = foundationIcons[index % foundationIcons.length]
+    const iconIndex = getFoundationIconIndex(index, itemCount)
+    node.icon = foundationIcons[iconIndex % foundationIcons.length]
   }
   if (type === 3) {
     const galleryConfig = dashboardLabels.centerTree.service.imageGalleries[index]
@@ -92,13 +96,13 @@ const loadDatasetNodes = async () => {
   if (foundationResult.status === 'fulfilled') {
     const response = foundationResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
-      foundationNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 1))
+      foundationNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 1, response.data.length))
     }
   }
   if (applicationResult.status === 'fulfilled') {
     const response = applicationResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
-      applicationNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 2))
+      applicationNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 2, response.data.length))
     }
   }
   if (overviewResult.status === 'fulfilled') {
@@ -110,7 +114,7 @@ const loadDatasetNodes = async () => {
   if (servicesResult.status === 'fulfilled') {
     const response = servicesResult.value
     if (response.code === 200 && Array.isArray(response.data)) {
-      serviceNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 3))
+      serviceNodes.value = response.data.map((item, index) => mapPreviewNode(item, index, 3, response.data.length))
     }
   }
 }

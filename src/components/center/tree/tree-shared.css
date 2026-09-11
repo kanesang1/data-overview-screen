@@ -1,3 +1,4 @@
+/* 树状大屏各层共用的节点、标题、数值和键盘焦点基础样式。 */
 .tree-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .tree-layer > * { pointer-events: auto; }
 .tree-node { position: absolute; width: 12%; padding: 0; border: 0; color: inherit; background: transparent; cursor: pointer; font-family: inherit; outline: none; }

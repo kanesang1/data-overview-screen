@@ -1,3 +1,4 @@
+<!-- 数据服务层：展示服务节点，管理自动轮播、详情提示和图片弹窗的打开状态。 -->
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import nodeActive from '@/assets/img/center/tree/node-active.png'
@@ -7,8 +8,8 @@ import serviceIconActive from '@/assets/img/center/tree/one/service-node-02.png'
 import type { TreeNode } from '../types'
 import { getArcStyle, type ArcLayout } from './arc-layout'
 import { dashboardLabels } from '@/config/dashboard-labels'
-import NodeDataTooltip from './NodeDataTooltip.vue'
-import ServiceImageDialog from './ServiceImageDialog.vue'
+import NodeDataTooltip from './components/NodeDataTooltip.vue'
+import ServiceImageDialog from './components/ServiceImageDialog.vue'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
 

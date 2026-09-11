@@ -1,3 +1,7 @@
+/**
+ * 树状大屏的通用弧线布局工具。
+ * 根据节点数量按弧线实际长度等距取点，避免直接按横坐标分布导致视觉间距不均。
+ */
 export type ArcLayout = {
   leftStart: number
   leftEnd: number

@@ -1,3 +1,4 @@
+<!-- 应用数据层：负责节点沿弧形轨道循环展示、悬停暂停及详情提示。 -->
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import applicationNodeActive from '@/assets/img/center/tree/two/application-node-active.svg'
@@ -5,7 +6,7 @@ import applicationNodeDefault from '@/assets/img/center/tree/two/application-nod
 import type { TreeNode } from '../types'
 import type { ArcLayout } from './arc-layout'
 import { dashboardLabels } from '@/config/dashboard-labels'
-import NodeDataTooltip from './NodeDataTooltip.vue'
+import NodeDataTooltip from './components/NodeDataTooltip.vue'
 
 const props = defineProps<{ nodes: TreeNode[] }>()
 

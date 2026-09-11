@@ -1,5 +1,6 @@
+<!-- 数据服务图片弹窗：支持多图网格；单图按原始宽高比进行响应式展示。 -->
 <script setup lang="ts">
-import type { TreeNode } from '../types'
+import type { TreeNode } from '../../types'
 
 defineProps<{
   gallery: NonNullable<TreeNode['gallery']>

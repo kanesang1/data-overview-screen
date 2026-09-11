@@ -1,5 +1,6 @@
+<!-- 通用节点详情提示：由服务、应用和基础数据层复用，内容结构来自 TreeNode.tooltip。 -->
 <script setup lang="ts">
-import type { TreeNode } from '../types'
+import type { TreeNode } from '../../types'
 
 defineProps<{
   data: NonNullable<TreeNode['tooltip']>
